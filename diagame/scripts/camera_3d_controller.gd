@@ -63,22 +63,14 @@ func reset_camera():
 
 func rotate_90_degrees_left():
 	"""Rotate camera 90 degrees to the left with smooth animation"""
-	if is_rotating:
-		return  # Already rotating
-	
-	is_rotating = true
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_QUAD)  # Quadratic easing for acceleration/deceleration
-	tween.set_ease(Tween.EASE_IN_OUT)
-	
-	var target_y = camera_rotation.y - PI / 2  # 90 degrees in radians (left)
-	tween.tween_property(self, "camera_rotation:y", target_y, 1.0)  # 1 second duration
-	
-	# Connect to finished signal to reset flag
-	tween.finished.connect(func(): is_rotating = false)
+	rotate_camera_by_degrees(-90)
 
 func rotate_90_degrees_right():
 	"""Rotate camera 90 degrees to the right with smooth animation"""
+	rotate_camera_by_degrees(90)
+
+func rotate_camera_by_degrees(degrees: float):
+	"""Rotate camera by the specified degrees with smooth animation"""
 	if is_rotating:
 		return  # Already rotating
 	
@@ -87,8 +79,9 @@ func rotate_90_degrees_right():
 	tween.set_trans(Tween.TRANS_QUAD)  # Quadratic easing for acceleration/deceleration
 	tween.set_ease(Tween.EASE_IN_OUT)
 	
-	var target_y = camera_rotation.y + PI / 2  # 90 degrees in radians (right)
-	tween.tween_property(self, "camera_rotation:y", target_y, 1.0)  # 1 second duration
+	var radians = deg_to_rad(degrees)
+	var target_y = camera_rotation.y + radians
+	tween.tween_property(self, "camera_rotation:y", target_y, 0.75)  # 0.5 second duration (50% reduction)
 	
 	# Connect to finished signal to reset flag
 	tween.finished.connect(func(): is_rotating = false)
