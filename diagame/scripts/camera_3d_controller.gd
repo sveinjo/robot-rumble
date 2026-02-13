@@ -35,6 +35,10 @@ func _input(event):
 	
 	# Rotate camera 90 degrees right with Page Down
 	if event is InputEventKey and event.keycode == KEY_PAGEDOWN and event.pressed and not is_rotating:
+		rotate_90_degrees_left()
+	
+	# Rotate camera 90 degrees left with Delete
+	if event is InputEventKey and event.keycode == KEY_DELETE and event.pressed and not is_rotating:
 		rotate_90_degrees_right()
 	
 	# Rotate camera based on mouse movement
@@ -57,6 +61,22 @@ func reset_camera():
 	camera_rotation = Vector3.ZERO
 	print("Camera reset to initial position")
 
+func rotate_90_degrees_left():
+	"""Rotate camera 90 degrees to the left with smooth animation"""
+	if is_rotating:
+		return  # Already rotating
+	
+	is_rotating = true
+	var tween = create_tween()
+	tween.set_trans(Tween.TRANS_QUAD)  # Quadratic easing for acceleration/deceleration
+	tween.set_ease(Tween.EASE_IN_OUT)
+	
+	var target_y = camera_rotation.y - PI / 2  # 90 degrees in radians (left)
+	tween.tween_property(self, "camera_rotation:y", target_y, 1.0)  # 1 second duration
+	
+	# Connect to finished signal to reset flag
+	tween.finished.connect(func(): is_rotating = false)
+
 func rotate_90_degrees_right():
 	"""Rotate camera 90 degrees to the right with smooth animation"""
 	if is_rotating:
@@ -67,7 +87,7 @@ func rotate_90_degrees_right():
 	tween.set_trans(Tween.TRANS_QUAD)  # Quadratic easing for acceleration/deceleration
 	tween.set_ease(Tween.EASE_IN_OUT)
 	
-	var target_y = camera_rotation.y - PI / 2  # 90 degrees in radians (left)
+	var target_y = camera_rotation.y + PI / 2  # 90 degrees in radians (right)
 	tween.tween_property(self, "camera_rotation:y", target_y, 1.0)  # 1 second duration
 	
 	# Connect to finished signal to reset flag
