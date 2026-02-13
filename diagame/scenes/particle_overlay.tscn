@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://particle_overlay_scene"]
+
+[ext_resource type="Script" path="res://scripts/particle_overlay.gd" id="1_particle_overlay"]
+[ext_resource type="Texture2D" uid="uid://star1b" path="res://assets/sprites/Star1b.png" id="2_star1b"]
+
+[node name="ParticleOverlay" type="Sprite2D"]
+z_index = -69
+texture = ExtResource("2_star1b")
+script = ExtResource("1_particle_overlay")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+rect = Rect2(-2000, -50, 4000, 100)

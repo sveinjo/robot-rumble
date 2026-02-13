@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://bcwgq1xg8v5wa"]
+
+[ext_resource type="Script" uid="uid://hpx1ndgxhxwj" path="res://scripts/credit_main.gd" id="1_n6r8a"]
+[ext_resource type="Texture2D" uid="uid://co7pftlr8kscn" path="res://assets/sprites/Flare.png" id="2_marker"]
+[ext_resource type="PackedScene" uid="uid://d1x7y8k2m5n3p" path="res://scenes/credit_fade_text.tscn" id="3_credit"]
+[ext_resource type="Script" uid="uid://6q1e88xywj8p" path="res://scripts/marker.gd" id="3_marker1"]
+[ext_resource type="Script" uid="uid://c4arb21plnkte" path="res://scripts/marker2.gd" id="4_marker2"]
+[ext_resource type="Script" path="res://scripts/credit_fade_text.gd" id="5_credit_script"]
+[ext_resource type="AudioStream" path="res://assets/sounds/bgmusic.mp3" id="6_bgmusic"]
+
+[node name="Credits" type="Node2D" unique_id=639440031]
+
+[node name="Background" type="ColorRect" parent="." unique_id=358254601]
+z_index = -200
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 1)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2124425266]
+offset = Vector2(960, 540)
+
+[node name="CreditMain" type="Node2D" parent="." unique_id=991764048]
+z_index = 200
+position = Vector2(640, 1388)
+script = ExtResource("1_n6r8a")
+
+[node name="Marker" type="Sprite2D" parent="." unique_id=863817173]
+z_index = 50
+position = Vector2(960, 540)
+texture = ExtResource("2_marker")
+script = ExtResource("3_marker1")
+
+[node name="Marker2" type="Sprite2D" parent="." unique_id=348191339]
+z_index = 50
+position = Vector2(960, 540)
+texture = ExtResource("2_marker")
+script = ExtResource("4_marker2")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=510863033]
+stream = ExtResource("6_bgmusic")
+volume_db = -6.0
+mix_target = 0
+autoplay = true
+
+[node name="CreditFadeText1" parent="." instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(640, 564)
+script = ExtResource("5_credit_script")
+credit_text = "Music by
+Erlend Hofstad Langseth"
+
+[node name="CreditFadeText2" parent="." instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(960, 444)
+script = ExtResource("5_credit_script")
+credit_text = "Art by
+Andreas Johansen"
+
+[node name="CreditFadeText3" parent="." instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(1280, 564)
+script = ExtResource("5_credit_script")
+credit_text = "Game design by
+Svein-Gunnar Johansen"

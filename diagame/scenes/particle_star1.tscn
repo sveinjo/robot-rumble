@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://star1scene"]
+
+[ext_resource type="Texture2D" uid="uid://bk6j8h9l2m3n4" path="res://assets/sprites/Star1.png" id="1"]
+[ext_resource type="Script" path="res://scripts/particle_star.gd" id="2"]
+
+[node name="ParticleStar1" type="Sprite2D"]
+z_index = -100
+texture = ExtResource("1")
+script = ExtResource("2")
+speed_multiplier = 6
