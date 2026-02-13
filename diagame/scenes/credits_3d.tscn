@@ -1,0 +1,96 @@
+[gd_scene load_steps=13 format=3 uid="uid://credits3d"]
+
+[ext_resource type="Script" uid="uid://hpx1ndgxhxwj" path="res://scripts/credit_main.gd" id="1_n6r8a"]
+[ext_resource type="Texture2D" uid="uid://co7pftlr8kscn" path="res://assets/sprites/Flare.png" id="2_marker"]
+[ext_resource type="PackedScene" uid="uid://d1x7y8k2m5n3p" path="res://scenes/credit_fade_text.tscn" id="3_credit"]
+[ext_resource type="Script" uid="uid://6q1e88xywj8p" path="res://scripts/marker.gd" id="3_marker1"]
+[ext_resource type="Script" uid="uid://c4arb21plnkte" path="res://scripts/marker2.gd" id="4_marker2"]
+[ext_resource type="Script" path="res://scripts/camera_3d_controller.gd" id="5_camera"]
+[ext_resource type="AudioStream" path="res://assets/sounds/bgmusic.mp3" id="6_bgmusic"]
+[ext_resource type="Script" path="res://scripts/screen_3d_setup.gd" id="7_screen"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_1"]
+size = Vector2(19.2, 10.8)
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_1"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+transparency = 1
+shading_mode = 0
+albedo_texture = SubResource("ViewportTexture_1")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 1.0
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0, 0, 0, 1)
+
+[node name="Credits3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.6)
+projection = 1
+size = 10.8
+script = ExtResource("5_camera")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+transparent_bg = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 3
+
+[node name="Background" type="ColorRect" parent="SubViewport"]
+z_index = -200
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 1)
+
+[node name="CreditMain" type="Node2D" parent="SubViewport"]
+z_index = 200
+position = Vector2(640, 1388)
+script = ExtResource("1_n6r8a")
+
+[node name="Marker" type="Sprite2D" parent="SubViewport"]
+z_index = 50
+position = Vector2(960, 540)
+texture = ExtResource("2_marker")
+script = ExtResource("3_marker1")
+
+[node name="Marker2" type="Sprite2D" parent="SubViewport"]
+z_index = 50
+position = Vector2(960, 540)
+texture = ExtResource("2_marker")
+script = ExtResource("4_marker2")
+
+[node name="CreditFadeText1" parent="SubViewport" instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(640, 564)
+
+[node name="CreditFadeText2" parent="SubViewport" instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(960, 444)
+
+[node name="CreditFadeText3" parent="SubViewport" instance=ExtResource("3_credit")]
+z_index = 100
+position = Vector2(1280, 564)
+
+[node name="Screen3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("QuadMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+script = ExtResource("7_screen")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_bgmusic")
+volume_db = -6.0
+autoplay = true
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_bgmusic")
+volume_db = -6.0
+autoplay = true
