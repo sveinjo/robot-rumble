@@ -294,8 +294,6 @@ driver/output_latency=15          # Prevents graininess
 driver/output_latency.web=50
 driver/mix_rate=44100             # Standard quality
 
-[display]
-window/vsync/vsync_mode=0         # CRITICAL: Disabled to prevent audio sync issues
 ```
 
 **AudioStreamPlayer Settings (in scene):**
