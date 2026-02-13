@@ -6,6 +6,7 @@ var movement_speed: float = 25.0
 var rotation_enabled: bool = false
 var last_mouse_position: Vector2 = Vector2.ZERO
 var camera_rotation: Vector3 = Vector3.ZERO  # Pitch, Yaw, Roll
+var is_rotating: bool = false
 
 func _ready():
 	# Position camera to view the 3D plane which is at z=0
@@ -32,6 +33,10 @@ func _input(event):
 	if event is InputEventKey and event.keycode == KEY_HOME and event.pressed:
 		reset_camera()
 	
+	# Rotate camera 90 degrees right with Page Down
+	if event is InputEventKey and event.keycode == KEY_PAGEDOWN and event.pressed and not is_rotating:
+		rotate_90_degrees_right()
+	
 	# Rotate camera based on mouse movement
 	if event is InputEventMouseMotion and rotation_enabled:
 		var delta_mouse = event.relative
@@ -44,9 +49,6 @@ func _input(event):
 		
 		# Clamp pitch to avoid flipping
 		camera_rotation.x = clamp(camera_rotation.x, -PI/2, PI/2)
-		
-		# Apply rotation
-		rotation = camera_rotation
 
 func reset_camera():
 	"""Reset camera to initial position and rotation"""
@@ -54,6 +56,22 @@ func reset_camera():
 	rotation = Vector3.ZERO
 	camera_rotation = Vector3.ZERO
 	print("Camera reset to initial position")
+
+func rotate_90_degrees_right():
+	"""Rotate camera 90 degrees to the right with smooth animation"""
+	if is_rotating:
+		return  # Already rotating
+	
+	is_rotating = true
+	var tween = create_tween()
+	tween.set_trans(Tween.TRANS_QUAD)  # Quadratic easing for acceleration/deceleration
+	tween.set_ease(Tween.EASE_IN_OUT)
+	
+	var target_y = camera_rotation.y - PI / 2  # 90 degrees in radians (left)
+	tween.tween_property(self, "camera_rotation:y", target_y, 1.0)  # 1 second duration
+	
+	# Connect to finished signal to reset flag
+	tween.finished.connect(func(): is_rotating = false)
 
 func _process(delta):
 	# Handle keyboard movement
@@ -81,6 +99,9 @@ func _process(delta):
 		var up = transform.basis.y
 		
 		position += forward * move_vector.z + right * move_vector.x + up * move_vector.y
+	
+	# Apply current rotation
+	rotation = camera_rotation
 	
 	# Release mouse if escape is pressed
 	if Input.is_action_just_pressed("ui_cancel") and rotation_enabled:
