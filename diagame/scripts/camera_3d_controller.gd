@@ -1,16 +1,17 @@
 extends Camera3D
 
-# 3D camera controller with mouse rotation
+# 3D camera controller with mouse rotation and keyboard movement
 var mouse_sensitivity: float = 0.003
+var movement_speed: float = 25.0
 var rotation_enabled: bool = false
 var last_mouse_position: Vector2 = Vector2.ZERO
 var camera_rotation: Vector3 = Vector3.ZERO  # Pitch, Yaw, Roll
 
 func _ready():
 	# Position camera to view the 3D plane which is at z=0
-	# Camera is at (0, 0, 15) looking at origin
-	position = Vector3(0, 0, 15)
-	look_at(Vector3.ZERO, Vector3.UP)
+	# Camera is at (0, 0, 11.6) looking at origin
+	position = Vector3(0, 0, 9.6)
+	look_at(Vector3(0, 0, 0), Vector3.UP)
 	
 	# Store initial rotation
 	camera_rotation = rotation
@@ -49,11 +50,38 @@ func _input(event):
 
 func reset_camera():
 	"""Reset camera to initial position and rotation"""
+	position = Vector3(0, 0, 9.6)
 	rotation = Vector3.ZERO
 	camera_rotation = Vector3.ZERO
 	print("Camera reset to initial position")
 
-func _process(_delta):
+func _process(delta):
+	# Handle keyboard movement
+	var move_vector = Vector3.ZERO
+	
+	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
+		move_vector.z -= 1
+	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
+		move_vector.z += 1
+	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
+		move_vector.x -= 1
+	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
+		move_vector.x += 1
+	if Input.is_key_pressed(KEY_Q):
+		move_vector.y += 1
+	if Input.is_key_pressed(KEY_E):
+		move_vector.y -= 1
+	
+	# Normalize and apply movement
+	if move_vector.length() > 0:
+		move_vector = move_vector.normalized() * movement_speed * delta
+		# Transform movement relative to camera orientation
+		var forward = -transform.basis.z
+		var right = transform.basis.x
+		var up = transform.basis.y
+		
+		position += forward * move_vector.z + right * move_vector.x + up * move_vector.y
+	
 	# Release mouse if escape is pressed
 	if Input.is_action_just_pressed("ui_cancel") and rotation_enabled:
 		rotation_enabled = false
