@@ -63,11 +63,9 @@ func _process(delta):
 		star_spawn_timer = star_spawn_interval
 
 func _input(event):
-	# On right-click, go to mission select (stubbed for now)
+	# On right-click, go to mission select.
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-		print("Right-click detected - would go to mission select")
-		# TODO: implement room transition
-		# get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
+		get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
 
 func _draw():
 	# Draw the story text with a shadow effect, centered horizontally

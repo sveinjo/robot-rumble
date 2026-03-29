@@ -1,0 +1,28 @@
+This is a rough starting point for converting credit_main.gd to UnrealScript. Note the key differences:
+
+- Coordinates: UE3 is 3D by default (X/Y horizontal, Z vertical), so I used Location.Z for scrolling. For true 2D, you'd set up an orthographic camera in your level.
+
+- Drawing: Uses PostRender instead of _draw(), with Canvas for text rendering.
+
+- Timers: SetTimer() for frame updates instead of _process(delta).
+
+- Instantiation: Spawn() instead of instantiate() and add_child().
+
+- Assets: Assumes you import fonts/particles as UDK assets (e.g., via DynamicLoadObject).
+
+Next Steps for the Full Port
+
+1. Set Up Particles: Create separate ParticleStar1.uc, ParticleStar2.uc, etc., based on particle_star.gd. Each would be a simple Actor with movement logic.
+
+2. Convert Other Scripts:
+
+- credit_fade_text.gd → CreditFadeText.uc (use Tick() for fading, PostRender() for drawing).
+- particle_star.gd → ParticleStar.uc (base class for star movement).
+
+3. Scene Recreation: In UDK's level editor, place your CreditMain actor, add a black background (via a material or skybox), and set up a camera.
+
+4. Audio: Import bgmusic.mp3 and play it via AudioComponent in your level or actor.
+
+5. Testing: Compile scripts in UDK, run the level, and debug. Expect issues with text rendering—UE3's Canvas is less flexible than Godot's.
+
+This will take trial and error since UE3 documentation is scarce. If you run into specific conversion issues (e.g., "How do I handle input?"), share the GDScript snippet, and I can help translate it. Otherwise, let me know if you want me to tackle another script or asset conversion!

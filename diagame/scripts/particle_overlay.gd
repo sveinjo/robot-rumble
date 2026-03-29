@@ -27,5 +27,6 @@ func _process(delta):
 	position.x += speed
 
 	# Destroy when off screen
-	if position.x <= -texture.get_width() * scale.x:
+	var tex_width: float = texture.get_width() if texture != null else 64.0
+	if position.x <= -tex_width * scale.x:
 		queue_free()

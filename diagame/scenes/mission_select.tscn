@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/mission_select.gd" id="1_mission"]
+[ext_resource type="Texture2D" path="res://assets/sprites/backgroundMissionSelect.png" id="2_bg"]
+
+[node name="MissionSelect" type="Node2D"]
+script = ExtResource("1_mission")
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -200
+position = Vector2(960, 540)
+texture = ExtResource("2_bg")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(960, 540)
+enabled = true

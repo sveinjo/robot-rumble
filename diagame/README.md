@@ -17,6 +17,14 @@ This is a port of Robot Rumble from GameMaker Studio 1.x to Godot 4.6.
 - Background music playback (bgmusic.mp3) with proper audio settings
 - Alt+Enter fullscreen toggle
 
+**MissionSelect Room - PORTED (Gameplay Transition Stubs) ✓**
+- 3x3 mission grid generated from hero levels (center slot is Home Base until overtaken)
+- Mission card fade-in for newly generated missions
+- Hover state shows mission XP reward like the GameMaker behavior
+- Click mission card stores `Global.intMissionSelected` and attempts transition to play field
+- Left-side hero roster with class/level/xp/ability summary
+- Imported original GameMaker background, hero portraits, enemy portraits, and frame art
+
 **Audio Settings Finalized:**
 - V-sync disabled to prevent audio timing issues
 - Output latency: 15ms (balances smoothness and delay)
@@ -166,6 +174,7 @@ diagame/
 │   └── fonts/        # arcade.png (bitmap font)
 ├── scenes/
 │   ├── credits.tscn              # Main credits scene
+│   ├── mission_select.tscn       # Mission select room scene
 │   ├── credit_fade_text.tscn     # Fading text component
 │   ├── particle_star1.tscn       # Star particle type 1
 │   ├── particle_star2.tscn       # Star particle type 2
@@ -177,7 +186,8 @@ diagame/
 │   ├── credit_fade_text.gd       # Fading text behavior
 │   ├── particle_star.gd          # Star particle movement
 │   ├── marker.gd                 # Rotating flare (clockwise)
-│   └── marker2.gd                # Rotating flare (counter-clockwise)
+│   ├── marker2.gd                # Rotating flare (counter-clockwise)
+│   └── mission_select.gd         # Mission select controller
 └── project.godot                 # Project configuration
 ```
 
