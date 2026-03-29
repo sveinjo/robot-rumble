@@ -33,10 +33,16 @@ This is a port of Robot Rumble from GameMaker Studio 1.x to Godot 4.6.
   * Base 50/3% per hero (~16.7%)
   * Counter bonus: +100/3% if hero ability matches enemy ability
   * Level modifier: 0x (3+ behind) → 1.5x (2+ ahead)
-- Single random roll determines victory (battle resolves instantly)
-- XP reward application on victory
-- Victory/defeat screen with 3-second auto-return to mission select
+- Fight button transitions to fight_room battle scene
 - Right-click returns to mission select without fighting
+
+**FightRoom - PORTED (Animated Resolution) ✓**
+- Loads selected heroes vs mission enemies in battle lanes
+- Uses win chance from PlayField and resolves battle in room
+- Animated strike sequence with dash, fade-out, and victory jump effects
+- Starfield and flare ambience during combat
+- XP reward and level-up applied on victory
+- Mission cleared on victory and return button enabled at battle end
 
 **Audio Settings Finalized:**
 - V-sync disabled to prevent audio timing issues

@@ -237,18 +237,17 @@ func _recalculate_win_chance():
 
 func _execute_battle():
 	battle_complete = true
-	if randf() * 100.0 <= current_win_chance:
-		Global.winFlag = 1
-		battle_won = true
-		result_text = "VICTORY!"
-		_apply_level_up()
-	else:
-		Global.winFlag = 0
-		battle_won = false
-		result_text = "DEFEAT"
+	Global.intBattleWinChance = current_win_chance
+	for i in range(1, 4):
+		Global.arrayFightingHeroes[i] = null
+		if engage_slots[i] > 0:
+			Global.arrayFightingHeroes[i] = engage_slots[i]
 
-	show_results = true
-	result_timer = 0.0
+	if ResourceLoader.exists("res://scenes/fight_room.tscn"):
+		get_tree().change_scene_to_file("res://scenes/fight_room.tscn")
+	else:
+		print("fight_room is not ported yet.")
+		battle_complete = false
 
 func _apply_level_up():
 	var xp_reward := int(mission_data.get("intXp", 100))
