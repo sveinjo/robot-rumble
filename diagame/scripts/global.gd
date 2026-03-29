@@ -30,6 +30,7 @@ var intEventMarker: int = 0
 var speechBubbles: bool = true
 
 var arcade_font: Font
+var common_menu: CanvasLayer
 
 func _ready():
 	# Set initial window mode to windowed
@@ -40,6 +41,21 @@ func _ready():
 
 	# Initialize arrays
 	initialize_game_data()
+
+	# Install shared menu overlay used across all rooms.
+	call_deferred("_install_common_menu")
+
+func _install_common_menu():
+	if common_menu != null:
+		return
+	if not ResourceLoader.exists("res://scripts/common_menu.gd"):
+		return
+	var menu_script: Script = load("res://scripts/common_menu.gd")
+	if menu_script == null:
+		return
+	common_menu = menu_script.new()
+	common_menu.name = "CommonMenu"
+	get_tree().root.add_child(common_menu)
 
 func initialize_game_data():
 	# Initialize mission array (1-9 for 3x3 grid)
@@ -183,6 +199,73 @@ func ensure_ported_data():
 		initialize_game_data()
 		return
 	seed_progression_data()
+
+func save_game_state(path: String = "user://savegame.json") -> bool:
+	var save_data: Dictionary = {
+		"version": 1,
+		"base_overtaken": base_overtaken,
+		"intMissionSelected": intMissionSelected,
+		"arrayHeroes": arrayHeroes.duplicate(true),
+		"arrayMissions": arrayMissions.duplicate(true),
+		"arrayEngageSlots": arrayEngageSlots.duplicate(true),
+		"arrayFightingHeroes": arrayFightingHeroes.duplicate(true),
+		"intBattleWinChance": intBattleWinChance,
+		"winFlag": winFlag
+	}
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(save_data))
+	return true
+
+func load_game_state(path: String = "user://savegame.json") -> bool:
+	if not FileAccess.file_exists(path):
+		return false
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return false
+	var text := f.get_as_text()
+	var json := JSON.new()
+	var parse_err := json.parse(text)
+	if parse_err != OK:
+		return false
+	if not (json.data is Dictionary):
+		return false
+	var data: Dictionary = json.data
+
+	# Ensure static tables exist, then apply saved dynamic state.
+	ensure_ported_data()
+
+	base_overtaken = bool(data.get("base_overtaken", base_overtaken))
+	intMissionSelected = int(data.get("intMissionSelected", intMissionSelected))
+	intBattleWinChance = float(data.get("intBattleWinChance", intBattleWinChance))
+	winFlag = int(data.get("winFlag", winFlag))
+
+	var loaded_heroes: Variant = data.get("arrayHeroes", null)
+	if loaded_heroes is Array:
+		arrayHeroes = loaded_heroes.duplicate(true)
+		if arrayHeroes.size() < 6:
+			arrayHeroes.resize(6)
+
+	var loaded_missions: Variant = data.get("arrayMissions", null)
+	if loaded_missions is Array:
+		arrayMissions = loaded_missions.duplicate(true)
+		if arrayMissions.size() < 10:
+			arrayMissions.resize(10)
+
+	var loaded_engage: Variant = data.get("arrayEngageSlots", null)
+	if loaded_engage is Array:
+		arrayEngageSlots = loaded_engage.duplicate(true)
+		if arrayEngageSlots.size() < 4:
+			arrayEngageSlots.resize(4)
+
+	var loaded_fighting: Variant = data.get("arrayFightingHeroes", null)
+	if loaded_fighting is Array:
+		arrayFightingHeroes = loaded_fighting.duplicate(true)
+		if arrayFightingHeroes.size() < 4:
+			arrayFightingHeroes.resize(4)
+
+	return true
 
 func _process(_delta):
 	# Toggle fullscreen with Alt+Enter
