@@ -25,6 +25,19 @@ This is a port of Robot Rumble from GameMaker Studio 1.x to Godot 4.6.
 - Left-side hero roster with class/level/xp/ability summary
 - Imported original GameMaker background, hero portraits, enemy portraits, and frame art
 
+**PlayField Room - PORTED (Battle Execution) ✓**
+- Hero roster on left (5 heroes, clickable)
+- Enemy preview on top right (3 enemies from selected mission)
+- Battle squad engagement slots in center (up to 3 heroes)
+- Win chance calculation based on:
+  * Base 50/3% per hero (~16.7%)
+  * Counter bonus: +100/3% if hero ability matches enemy ability
+  * Level modifier: 0x (3+ behind) → 1.5x (2+ ahead)
+- Single random roll determines victory (battle resolves instantly)
+- XP reward application on victory
+- Victory/defeat screen with 3-second auto-return to mission select
+- Right-click returns to mission select without fighting
+
 **Audio Settings Finalized:**
 - V-sync disabled to prevent audio timing issues
 - Output latency: 15ms (balances smoothness and delay)

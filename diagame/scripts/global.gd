@@ -19,6 +19,12 @@ var arrayLevels: Array = []
 var arrayAbilities: Array = []
 var intMissionSelected: int = 0
 
+# Battle state (for playField room)
+var arrayFightingHeroes: Array = []  # Heroes selected for current battle
+var arrayEngageSlots: Array = []  # Slots 1-3 for selected heroes
+var intBattleWinChance: float = 0.0  # Calculated win percentage (0-100)
+var winFlag: int = 0  # 0=loss, 1=win (set after battle)
+
 # UI and event flags
 var intEventMarker: int = 0
 var speechBubbles: bool = true
@@ -55,6 +61,12 @@ func initialize_game_data():
 	# Ability display names (1-indexed)
 	arrayAbilities.resize(9)
 	arrayAbilities.fill(null)
+
+	# Battle state (3 engagement slots)
+	arrayFightingHeroes.resize(4)  # 0 unused, 1-3 for selected heroes
+	arrayFightingHeroes.fill(null)
+	arrayEngageSlots.resize(4)  # 0 unused, 1-3 for engagement slots
+	arrayEngageSlots.fill(null)
 
 	seed_progression_data()
 
