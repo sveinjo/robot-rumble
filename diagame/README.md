@@ -44,6 +44,13 @@ This is a port of Robot Rumble from GameMaker Studio 1.x to Godot 4.6.
 - XP reward and level-up applied on victory
 - Mission cleared on victory and return button enabled at battle end
 
+**HomeBase Room - PORTED (Legacy Stub Behavior) ✓**
+- Restored original homeBase visual layout with backgroundBase and heading text
+- Left-side roster cards + center utility 2x3 grid (CARBS/PROTEIN/FATS/FAST INSULIN/HERO/SLOW INSULIN)
+- Ambient center markers and star particles
+- CANCEL button and right-click both return to mission select
+- Preserves original "HOME BASE NOT OPERATIONAL" behavior (no gameplay mechanics yet)
+
 **Audio Settings Finalized:**
 - V-sync disabled to prevent audio timing issues
 - Output latency: 15ms (balances smoothness and delay)
