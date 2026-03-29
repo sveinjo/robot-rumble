@@ -9,6 +9,10 @@ const REWARD_Y := 652.0
 const RETURN_BUTTON_POS := Vector2(1563, 761)
 const RETURN_BUTTON_SIZE := Vector2(176, 88)
 const TITLE_POS := Vector2(1160, 44)
+const START_DELAY := 40.0 / 60.0
+const IMPACT_DELAY := 20.0 / 60.0
+const CHAIN_DELAY := 60.0 / 60.0
+const VICTORY_POST_DELAY := 80.0 / 60.0
 
 var arcade_font: Font
 var frame_texture: Texture2D
@@ -38,6 +42,11 @@ var xp_reward: int = 0
 
 var action_timer: float = 0.0
 var star_timer: float = 0.0
+var hit_timer: float = 0.0
+var post_victory_timer: float = 0.0
+var pending_hit: bool = false
+var pending_attack_from_left: bool = true
+var pending_target_index: int = -1
 
 func _ready():
 	randomize()
@@ -61,8 +70,11 @@ func _ready():
 
 	strike_index = 0
 	enemies_left = right_fighters.size()
-	action_timer = 0.6
+	action_timer = START_DELAY
 	star_timer = 0.05
+	hit_timer = 0.0
+	post_victory_timer = 0.0
+	pending_hit = false
 	battle_started = true
 	queue_redraw()
 
@@ -252,6 +264,25 @@ func _update_fighter_motion(delta: float):
 
 func _update_battle_timeline(delta: float):
 	if not battle_started or battle_finished:
+		if post_victory_timer > 0.0:
+			post_victory_timer -= delta
+			if post_victory_timer <= 0.0:
+				reward_visible = true
+				for i in range(left_fighters.size()):
+					var f: Dictionary = left_fighters[i]
+					if bool(f.get("visible", true)):
+						f["jump"] = true
+						f["jump_t"] = 0.0
+						left_fighters[i] = f
+		return
+
+	if pending_hit:
+		hit_timer -= delta
+		if hit_timer > 0.0:
+			return
+		_resolve_pending_hit()
+		action_timer = CHAIN_DELAY
+		pending_hit = false
 		return
 
 	action_timer -= delta
@@ -264,24 +295,30 @@ func _update_battle_timeline(delta: float):
 		_progress_lose_sequence()
 
 func _progress_win_sequence():
-	# Heroes strike enemies in order; enemies fade out.
+	# Heroes strike enemies in order; then remaining enemies fade as a group.
 	if strike_index < left_fighters.size() and strike_index < right_fighters.size():
 		var attacker: Dictionary = left_fighters[strike_index]
 		if bool(attacker.get("visible", true)):
 			attacker["dashing"] = true
 			attacker["dash_t"] = 0.0
 			left_fighters[strike_index] = attacker
-		var target: Dictionary = right_fighters[strike_index]
-		target["fade"] = true
-		right_fighters[strike_index] = target
-		enemies_left -= 1
-		strike_index += 1
-		action_timer = 0.55
-		if enemies_left <= 0:
-			_finish_battle(true)
+		pending_hit = true
+		hit_timer = IMPACT_DELAY
+		pending_attack_from_left = true
+		pending_target_index = strike_index
 		return
 
-	_finish_battle(true)
+	if enemies_left > 0:
+		for i in range(right_fighters.size()):
+			var target: Dictionary = right_fighters[i]
+			if bool(target.get("visible", true)):
+				target["fade"] = true
+				right_fighters[i] = target
+		enemies_left = 0
+	return_visible = true
+	battle_finished = true
+	post_victory_timer = VICTORY_POST_DELAY
+	return
 
 func _progress_lose_sequence():
 	# Enemies strike heroes in order; heroes fade out.
@@ -291,28 +328,43 @@ func _progress_lose_sequence():
 			attacker["dashing"] = true
 			attacker["dash_t"] = 0.0
 			right_fighters[strike_index] = attacker
-		var victim: Dictionary = left_fighters[strike_index]
-		victim["fade"] = true
-		left_fighters[strike_index] = victim
-		strike_index += 1
-		action_timer = 0.55
-		if strike_index >= left_fighters.size():
-			_finish_battle(false)
+		pending_hit = true
+		hit_timer = IMPACT_DELAY
+		pending_attack_from_left = false
+		pending_target_index = strike_index
 		return
 
 	_finish_battle(false)
 
+func _resolve_pending_hit():
+	if pending_attack_from_left:
+		if pending_target_index >= 0 and pending_target_index < right_fighters.size():
+			var target: Dictionary = right_fighters[pending_target_index]
+			if bool(target.get("visible", true)):
+				target["fade"] = true
+				right_fighters[pending_target_index] = target
+				enemies_left -= 1
+		strike_index += 1
+		if enemies_left <= 0:
+			return_visible = true
+			battle_finished = true
+			post_victory_timer = VICTORY_POST_DELAY
+	else:
+		if pending_target_index >= 0 and pending_target_index < left_fighters.size():
+			var victim: Dictionary = left_fighters[pending_target_index]
+			if bool(victim.get("visible", true)):
+				victim["fade"] = true
+				left_fighters[pending_target_index] = victim
+		strike_index += 1
+		if strike_index >= left_fighters.size():
+			_finish_battle(false)
+
 func _finish_battle(player_won: bool):
 	battle_finished = true
 	return_visible = true
-	reward_visible = player_won
+	reward_visible = false
 	if player_won:
-		for i in range(left_fighters.size()):
-			var f: Dictionary = left_fighters[i]
-			if bool(f.get("visible", true)):
-				f["jump"] = true
-				f["jump_t"] = 0.0
-				left_fighters[i] = f
+		post_victory_timer = VICTORY_POST_DELAY
 
 func _apply_level_up_rewards():
 	for i in range(1, 4):
