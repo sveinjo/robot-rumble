@@ -54,8 +54,8 @@ func _process(_delta):
 	
 
 func _input(event):
-	# On right-click, go to mission select.
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+	# On left-click, go to mission select.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
 
 func _draw():
