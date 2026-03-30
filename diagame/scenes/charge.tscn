@@ -1,32 +1,37 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://c7s6m75xgqsc4"]
 
-[ext_resource type="Script" path="res://scripts/charge_room.gd" id="1_charge"]
-[ext_resource type="Texture2D" path="res://assets/sprites/Flare.png" id="2_flare"]
-[ext_resource type="Texture2D" path="res://assets/sprites/MegaCharge_0.png" id="3_mega"]
+[ext_resource type="Script" uid="uid://b05e4j3ycgddl" path="res://scripts/charge_room.gd" id="1_charge"]
+[ext_resource type="Texture2D" uid="uid://co7pftlr8kscn" path="res://assets/sprites/Flare.png" id="2_flare"]
+[ext_resource type="Texture2D" uid="uid://01gnw5uqxtio" path="res://assets/sprites/MegaCharge_0.png" id="3_mega"]
 
-[node name="Charge" type="Node2D"]
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_25ywb"]
+
+[node name="Charge" type="Node2D" unique_id=1366021470]
 script = ExtResource("1_charge")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=725561443]
 position = Vector2(960, 540)
-enabled = true
 
-[node name="StarContainer" type="Node2D" parent="."]
-z_index = 99
+[node name="StarContainer" type="Node2D" parent="." unique_id=1233907460]
+z_index = 90
 
-[node name="CenterGlow" type="Sprite2D" parent="."]
+[node name="CenterGlow" type="Sprite2D" parent="." unique_id=420294829]
 z_index = 100
+texture_filter = 2
+material = SubResource("CanvasItemMaterial_25ywb")
 position = Vector2(960, 540)
 scale = Vector2(2.5, 2.5)
 texture = ExtResource("2_flare")
 
-[node name="MarkerGlow" type="Sprite2D" parent="."]
-z_index = 100
+[node name="MarkerGlow" type="Sprite2D" parent="." unique_id=2030059529]
+z_index = 95
+texture_filter = 2
 position = Vector2(960, 540)
 texture = ExtResource("2_flare")
 
-[node name="MegaCharge" type="Sprite2D" parent="."]
-z_index = 200
+[node name="MegaCharge" type="Sprite2D" parent="." unique_id=335206300]
+z_index = 80
+use_parent_material = true
 position = Vector2(640, 256)
-centered = false
 texture = ExtResource("3_mega")
+centered = false
