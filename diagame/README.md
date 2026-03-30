@@ -17,6 +17,17 @@ This is a port of Robot Rumble from GameMaker Studio 1.x to Godot 4.6.
 - Background music playback (bgmusic.mp3) with proper audio settings
 - Alt+Enter fullscreen toggle
 
+**Charge Room - PORTED (Legacy Intro Flow) ✓**
+- MegaCharge splash art at original placement
+- Clickable mega charge area transitions to Credits (matching GM room flow)
+- Custom directional star streaks replicated from `starDirectional`:
+  * Spawn from random x at top or bottom edge
+  * Move toward screen center with accelerating speed (`* 1.03` per frame)
+  * Stretch on x-axis as speed increases
+  * Self-destroy when crossing the center y-band (520-560)
+- Dedicated room star behavior runs with shared persistent starfield disabled
+- Center flare pair spins in opposite directions at original cadence
+
 **MissionSelect Room - PORTED (Gameplay Transition Stubs) ✓**
 - 3x3 mission grid generated from hero levels (center slot is Home Base until overtaken)
 - Mission card fade-in for newly generated missions
