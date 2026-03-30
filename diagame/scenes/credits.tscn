@@ -20,12 +20,14 @@ script = ExtResource("1_n6r8a")
 [node name="Marker" type="Sprite2D" parent="." unique_id=863817173]
 z_index = 50
 position = Vector2(960, 540)
+texture_filter = 2
 texture = ExtResource("2_marker")
 script = ExtResource("3_marker1")
 
 [node name="Marker2" type="Sprite2D" parent="." unique_id=348191339]
 z_index = 50
 position = Vector2(960, 540)
+texture_filter = 2
 texture = ExtResource("2_marker")
 script = ExtResource("4_marker2")
 
