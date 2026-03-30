@@ -14,12 +14,6 @@ var frame_texture: Texture2D
 var flare_texture: Texture2D
 var hero_textures: Dictionary = {}
 
-var particle_star1_scene = preload("res://scenes/particle_star1.tscn")
-var particle_star2_scene = preload("res://scenes/particle_star2.tscn")
-var particle_star3_scene = preload("res://scenes/particle_star3.tscn")
-
-var star_timer: float = 0.10
-
 var tiles: Array[Dictionary] = [
 	{"caption": "CARBS", "value": "10", "hero": false},
 	{"caption": "PROTEIN", "value": "20", "hero": false},
@@ -70,32 +64,9 @@ func _update_layout_to_viewport():
 	scale = Vector2(fit_scale, fit_scale)
 	position = (viewport_size - (DESIGN_SIZE * fit_scale)) * 0.5
 
-func _process(delta: float):
+func _process(_delta: float):
 	_update_layout_to_viewport()
-	_update_starfield(delta)
 	queue_redraw()
-
-func _update_starfield(delta: float):
-	star_timer -= delta
-	if star_timer > 0.0:
-		return
-	star_timer = 20.0 / 60.0
-	_create_star_particle()
-
-func _create_star_particle():
-	var star_line := randf() * 1080.0
-	var t := randf() * 3.0
-	var ps: PackedScene
-	if t > 2.0:
-		ps = particle_star3_scene
-	elif t > 1.0:
-		ps = particle_star2_scene
-	else:
-		ps = particle_star1_scene
-	var p: Node2D = ps.instantiate()
-	p.position = Vector2(1920, star_line)
-	p.z_index = -50
-	add_child(p)
 
 func _input(event: InputEvent):
 	if not (event is InputEventMouseButton) or not event.pressed:

@@ -4,7 +4,6 @@ const SLOT_X: Array[int] = [0, 913, 1238, 1563]
 const SLOT_Y: Array[int] = [0, 143, 452, 761]
 const HERO_Y: Array[int] = [0, 68, 260, 452, 644, 836]
 const CARD_SIZE := Vector2(176, 176)
-const STAR_SPAWN_INTERVAL := 20.0 / 60.0
 
 var frame_texture: Texture2D
 var hero_textures: Dictionary = {}
@@ -12,11 +11,6 @@ var enemy_textures: Dictionary = {}
 var arcade_font: Font
 
 var hovered_slot: int = 0
-var star_spawn_timer: float = STAR_SPAWN_INTERVAL
-
-var particle_star1_scene = preload("res://scenes/particle_star1.tscn")
-var particle_star2_scene = preload("res://scenes/particle_star2.tscn")
-var particle_star3_scene = preload("res://scenes/particle_star3.tscn")
 var particle_overlay_scene = preload("res://scenes/particle_overlay.tscn")
 
 func _ready():
@@ -28,8 +22,6 @@ func _ready():
 	_load_textures()
 	_setup_ambient_fx()
 	_generate_missions_if_needed()
-
-	star_spawn_timer = STAR_SPAWN_INTERVAL
 	queue_redraw()
 
 func _load_textures():
@@ -123,7 +115,6 @@ func _create_mission(index: int):
 func _process(delta: float):
 	_update_hover_state()
 	_update_mission_fades(delta)
-	_update_star_particles(delta)
 	queue_redraw()
 
 func _update_hover_state():
@@ -148,29 +139,6 @@ func _update_mission_fades(delta: float):
 				mission["fade_flag"] = false
 				mission["isNew"] = false
 			Global.arrayMissions[i] = mission
-
-func _update_star_particles(delta: float):
-	star_spawn_timer -= delta
-	if star_spawn_timer <= 0.0:
-		_create_star_particle()
-		star_spawn_timer = STAR_SPAWN_INTERVAL
-
-func _create_star_particle():
-	var star_line := randf() * 1080.0
-	var star_type := randf() * 3.0
-	var particle_scene: PackedScene
-
-	if star_type > 2.0:
-		particle_scene = particle_star3_scene
-	elif star_type > 1.0:
-		particle_scene = particle_star2_scene
-	else:
-		particle_scene = particle_star1_scene
-
-	var particle: Node2D = particle_scene.instantiate()
-	particle.position = Vector2(1920, star_line)
-	particle.z_index = -50
-	add_child(particle)
 
 func _input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

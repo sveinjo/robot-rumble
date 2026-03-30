@@ -24,6 +24,7 @@ driver/enable_input=true
 
 Global="*res://scripts/global.gd"
 MusicManager="*res://scripts/music_manager.gd"
+StarfieldManager="*res://scripts/starfield_manager.gd"
 
 [display]
 

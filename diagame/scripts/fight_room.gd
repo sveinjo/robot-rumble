@@ -20,10 +20,6 @@ var flare_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 
-var particle_star1_scene = preload("res://scenes/particle_star1.tscn")
-var particle_star2_scene = preload("res://scenes/particle_star2.tscn")
-var particle_star3_scene = preload("res://scenes/particle_star3.tscn")
-
 var selected_heroes: Array[int] = []
 var mission_enemies: Array[int] = []
 var mission_data: Dictionary = {}
@@ -41,7 +37,6 @@ var reward_visible: bool = false
 var xp_reward: int = 0
 
 var action_timer: float = 0.0
-var star_timer: float = 0.0
 var hit_timer: float = 0.0
 var post_victory_timer: float = 0.0
 var pending_hit: bool = false
@@ -71,7 +66,6 @@ func _ready():
 	strike_index = 0
 	enemies_left = right_fighters.size()
 	action_timer = START_DELAY
-	star_timer = 0.05
 	hit_timer = 0.0
 	post_victory_timer = 0.0
 	pending_hit = false
@@ -183,34 +177,15 @@ func _update_layout_to_viewport():
 
 func _process(delta: float):
 	_update_layout_to_viewport()
-	_update_starfield(delta)
+	_update_starfield_state(delta)
 	_update_fighter_motion(delta)
 	_update_battle_timeline(delta)
 	queue_redraw()
 
-func _update_starfield(delta: float):
-	star_timer -= delta
-	if star_timer > 0.0:
-		return
-	star_timer = max(0.02, 0.08 / max(1.0, Global.star_speed))
-	_create_star_particle()
+func _update_starfield_state(_delta: float):
+	# Keep fight-room acceleration effect while shared manager handles actual spawning.
 	Global.star_speed = min(14.0, Global.star_speed * 1.003)
 	Global.star_size = min(10.0, Global.star_size * 1.003)
-
-func _create_star_particle():
-	var star_line := randf() * 1080.0
-	var t := randf() * 3.0
-	var ps: PackedScene
-	if t > 2.0:
-		ps = particle_star3_scene
-	elif t > 1.0:
-		ps = particle_star2_scene
-	else:
-		ps = particle_star1_scene
-	var p: Node2D = ps.instantiate()
-	p.position = Vector2(1920, star_line)
-	p.z_index = -50
-	add_child(p)
 
 func _update_fighter_motion(delta: float):
 	for i in range(left_fighters.size()):

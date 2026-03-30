@@ -200,6 +200,24 @@ func ensure_ported_data():
 		return
 	seed_progression_data()
 
+func set_starfield_enabled(value: bool):
+	if has_node("/root/StarfieldManager"):
+		get_node("/root/StarfieldManager").set_enabled(value)
+
+func set_starfield_spawn_interval(value: float):
+	if has_node("/root/StarfieldManager"):
+		get_node("/root/StarfieldManager").set_spawn_interval(value)
+
+func clear_starfield_particles():
+	if has_node("/root/StarfieldManager"):
+		get_node("/root/StarfieldManager").clear_particles()
+
+func reset_starfield_defaults():
+	star_speed = 2.0
+	star_size = 1.0
+	if has_node("/root/StarfieldManager"):
+		get_node("/root/StarfieldManager").reset_defaults()
+
 func save_game_state(path: String = "user://savegame.json") -> bool:
 	var save_data: Dictionary = {
 		"version": 1,
