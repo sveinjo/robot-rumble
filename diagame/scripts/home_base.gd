@@ -2,15 +2,20 @@ extends Node2D
 
 const DESIGN_SIZE := Vector2(1920, 1080)
 const CARD_SIZE := Vector2(176, 176)
+const FRAME_SIZE := Vector2(197, 176)
 const ROSTER_X := 15.0
 const ROSTER_Y: Array[int] = [0, 68, 260, 452, 644, 836]
 const GRID_X: Array[int] = [0, 913, 1238, 1563]
 const GRID_Y: Array[int] = [0, 143, 452, 761]
 const HEADING_POS := Vector2(865, 44)
-const CANCEL_RECT := Rect2(Vector2(1798, 0), Vector2(122, 88))
+const CANCEL_BUTTON_SIZE := Vector2(244, 54)
+const CANCEL_BUTTON_POS := Vector2(1920 - 244, 0)
+const CANCEL_RECT := Rect2(CANCEL_BUTTON_POS, CANCEL_BUTTON_SIZE)
 
 var arcade_font: Font
 var frame_texture: Texture2D
+var empty_texture: Texture2D
+var menu_bar_texture: Texture2D
 var flare_texture: Texture2D
 var hero_textures: Dictionary = {}
 
@@ -28,7 +33,11 @@ func _ready():
 	Global.ensure_ported_data()
 	arcade_font = Global.arcade_font if Global.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
 	frame_texture = load("res://assets/sprites/Frame_0.png")
+	empty_texture = load("res://assets/sprites/Empty_0.png")
+	menu_bar_texture = load("res://assets/sprites/MenuBar_0.png")
 	flare_texture = load("res://assets/sprites/Flare.png")
+	Global.set_starfield_enabled(true)
+	Global.set_starfield_spawn_interval(20.0 / 60.0)
 	_load_hero_textures()
 	_setup_ambient_fx()
 	_update_layout_to_viewport()
@@ -48,14 +57,14 @@ func _setup_ambient_fx():
 	marker.position = Vector2(1326, 540)
 	marker.texture = flare_texture
 	marker.script = load("res://scripts/marker.gd")
-	marker.z_index = 20
+	marker.z_index = -10
 	add_child(marker)
 
 	var marker2 := Sprite2D.new()
 	marker2.position = Vector2(1326, 540)
 	marker2.texture = flare_texture
 	marker2.script = load("res://scripts/marker2.gd")
-	marker2.z_index = 20
+	marker2.z_index = -10
 	add_child(marker2)
 
 func _update_layout_to_viewport():
@@ -107,7 +116,8 @@ func _draw_roster():
 		else:
 			draw_rect(rect, Color(0.2, 0.2, 0.2, 0.75), true)
 		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect, false)
+			var frame_rect := Rect2(rect.position, FRAME_SIZE)
+			draw_texture_rect(frame_texture, frame_rect, false)
 
 		var raw_hero: Variant = Global.arrayHeroes[hero_id]
 		if raw_hero == null:
@@ -115,8 +125,14 @@ func _draw_roster():
 		var hero: Dictionary = raw_hero
 		var level := int(hero.get("intLevel", 1))
 		var xp := int(hero.get("intXp", 0))
-		var label := "%s  Lv%d  XP:%d" % [str(hero.get("class", "Hero")), level, xp]
-		draw_string(arcade_font, rect.position + Vector2(204, 22), label, HORIZONTAL_ALIGNMENT_LEFT, 420, 16, Color.BLACK)
+		var ability_idx := int(hero.get("skillSlot1", 1))
+		var ability_name := "Ability"
+		if ability_idx > 0 and ability_idx < Global.arrayAbilities.size() and Global.arrayAbilities[ability_idx] != null:
+			ability_name = str(Global.arrayAbilities[ability_idx])
+		var label := "%s XP:%d %s" % [str(hero.get("class", "Hero")), xp, ability_name]
+		label = _break_after_first_word(label)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(164, 22), 24), "%d" % level, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
+		_draw_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), label, 24, 300, Color.WHITE)
 
 func _draw_tiles():
 	if arcade_font == null:
@@ -130,23 +146,103 @@ func _draw_tiles():
 				var center_tex: Texture2D = hero_textures.get(2, null)
 				if center_tex != null:
 					draw_texture_rect(center_tex, rect, false)
+					if frame_texture != null:
+						var hero_frame_rect := Rect2(rect.position, FRAME_SIZE)
+						draw_texture_rect(frame_texture, hero_frame_rect, false)
 				else:
-					draw_rect(rect, Color(0.2, 0.2, 0.2, 0.85), true)
+					draw_texture_rect(empty_texture, rect, false)
 			else:
-				draw_rect(rect, Color(0.08, 0.08, 0.08, 0.85), true)
-			if frame_texture != null:
-				draw_texture_rect(frame_texture, rect, false)
+				draw_texture_rect(empty_texture, rect, false)
 
 			var caption := str(tile.get("caption", ""))
 			var value := str(tile.get("value", ""))
 			if caption != "":
-				draw_string(arcade_font, rect.position + Vector2(88, 20), caption, HORIZONTAL_ALIGNMENT_CENTER, 176, 16, Color.WHITE)
-				draw_string(arcade_font, rect.position + Vector2(88, 164), value, HORIZONTAL_ALIGNMENT_CENTER, 176, 16, Color.WHITE)
+				var caption_wrapped := _break_after_first_word(caption)
+				_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(91, 8), 24), caption_wrapped, 24, 176, Color(0, 0, 1))
+				_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(88, 5), 24), caption_wrapped, 24, 176, Color.WHITE)
+				_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(91, 152), 24), value, 24, 176, Color(0, 0, 1))
+				_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(88, 149), 24), value, 24, 176, Color.WHITE)
 			idx += 1
 
 func _draw_cancel_button():
 	if arcade_font == null:
 		return
-	draw_rect(CANCEL_RECT, Color(0.2, 0.2, 0.2, 0.85), true)
-	draw_rect(CANCEL_RECT, Color.WHITE, false, 2.0)
-	draw_string(arcade_font, CANCEL_RECT.position + Vector2(12, 54), "CANCEL", HORIZONTAL_ALIGNMENT_LEFT, 110, 18, Color.WHITE)
+	if menu_bar_texture != null:
+		var center := CANCEL_RECT.position + (CANCEL_RECT.size * 0.5)
+		draw_set_transform(center, 0.0, Vector2(-1, 1))
+		draw_texture_rect(menu_bar_texture, Rect2(-CANCEL_RECT.size * 0.5, CANCEL_RECT.size), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_rect(CANCEL_RECT, Color(0.2, 0.2, 0.2, 0.85), true)
+	var char_width: float = arcade_font.get_string_size("C", HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+	var text_pos := _with_text_height(CANCEL_RECT.position + Vector2(char_width, 16), 24)
+	draw_string(arcade_font, text_pos + Vector2(3, 3), "CANCEL", HORIZONTAL_ALIGNMENT_CENTER, 244, 24, Color(0, 0, 1))
+	draw_string(arcade_font, text_pos, "CANCEL", HORIZONTAL_ALIGNMENT_CENTER, 244, 24, Color.WHITE)
+
+func _with_text_height(pos: Vector2, font_size: int) -> Vector2:
+	return pos + Vector2(0, float(font_size))
+
+func _break_after_first_word(text: String) -> String:
+	var split_index := text.find(" ")
+	if split_index == -1:
+		return text
+	return text.substr(0, split_index) + "\n" + text.substr(split_index + 1)
+
+func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, max_width: int, color: Color):
+	var normalized_text := text.replace("\n", " \n ")
+	var words := normalized_text.split(" ")
+	var lines := []
+	var current_line := ""
+
+	for word in words:
+		if word == "\n":
+			if current_line.length() > 0:
+				lines.append(current_line)
+				current_line = ""
+			continue
+		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
+		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		if text_size.x > max_width and current_line.length() > 0:
+			lines.append(current_line)
+			current_line = word
+		else:
+			current_line = test_text
+
+	if current_line.length() > 0:
+		lines.append(current_line)
+
+	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
+	var y_offset := 0.0
+	for line in lines:
+		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+		y_offset += line_height
+
+func _draw_centered_wrapped_text(font: Font, center_pos: Vector2, text: String, font_size: int, max_width: int, color: Color):
+	var normalized_text := text.replace("\n", " \n ")
+	var words := normalized_text.split(" ")
+	var lines := []
+	var current_line := ""
+
+	for word in words:
+		if word == "\n":
+			if current_line.length() > 0:
+				lines.append(current_line)
+				current_line = ""
+			continue
+		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
+		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		if text_size.x > max_width and current_line.length() > 0:
+			lines.append(current_line)
+			current_line = word
+		else:
+			current_line = test_text
+
+	if current_line.length() > 0:
+		lines.append(current_line)
+
+	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
+	var y_offset := 0.0
+	for line in lines:
+		var line_width := font.get_string_size(line, 0, -1, font_size).x
+		draw_string(font, center_pos + Vector2(-line_width * 0.5, y_offset), line, 0, -1, font_size, color)
+		y_offset += line_height
