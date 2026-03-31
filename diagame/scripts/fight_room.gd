@@ -16,7 +16,7 @@ const CHAIN_DELAY := 60.0 / 60.0
 const GROUP_FADE_DELAY := 20.0 / 60.0
 const VICTORY_POST_DELAY := 60.0 / 60.0
 
-@export var show_star_debug_counts: bool = true
+@export var show_star_debug_counts: bool = false
 
 var arcade_font: Font
 var frame_texture: Texture2D
@@ -429,6 +429,7 @@ func _input(event: InputEvent):
 
 func _return_to_mission_select():
 	Global.reset_starfield_defaults()
+	Global.clear_starfield_particles()
 	get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
 
 func _draw():
