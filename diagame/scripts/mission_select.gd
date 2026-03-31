@@ -45,7 +45,7 @@ func _setup_ambient_fx():
 	marker.texture = marker_tex
 	marker.script = load("res://scripts/marker.gd")
 	marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker.z_index = 20
+	marker.z_index = -10
 	add_child(marker)
 
 	var marker2 := Sprite2D.new()
@@ -53,7 +53,7 @@ func _setup_ambient_fx():
 	marker2.texture = marker_tex
 	marker2.script = load("res://scripts/marker2.gd")
 	marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker2.z_index = 20
+	marker2.z_index = -10
 	add_child(marker2)
 
 	# Add flares for each row at Y positions matching the mission grid rows
@@ -81,7 +81,7 @@ func _setup_ambient_fx():
 		if stripe.texture != null:
 			y_offset = stripe.texture.get_height() * stripe.scale.y * 0.5
 		stripe.position = Vector2(-1900, y_pos - y_offset)
-		stripe.z_index = 5
+		stripe.z_index = -10
 		stripe.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		add_child(stripe)
 

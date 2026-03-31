@@ -8,6 +8,7 @@ const ENEMY_X: Array[int] = [0, 913, 1238, 1563]
 const ENEMY_Y := 143.0
 const ENGAGE_Y := 452.0
 const TITLE_POS := Vector2(1110, 44)
+const VS_POS := Vector2(1292, 396)
 const LEVEL_OFFSET := Vector2(164, 22)
 const CHANCE_POS := Vector2(1238, 761)
 const START_BUTTON_POS := Vector2(1563, 761)
@@ -106,7 +107,7 @@ func _setup_ambient_fx():
 	marker.texture = flare_texture
 	marker.script = load("res://scripts/marker.gd")
 	marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker.z_index = 20
+	marker.z_index = -10
 	add_child(marker)
 
 	var marker2 := Sprite2D.new()
@@ -114,7 +115,7 @@ func _setup_ambient_fx():
 	marker2.texture = flare_texture
 	marker2.script = load("res://scripts/marker2.gd")
 	marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker2.z_index = 20
+	marker2.z_index = -10
 	add_child(marker2)
 
 	var stripe: Sprite2D = particle_overlay_scene.instantiate()
@@ -123,7 +124,7 @@ func _setup_ambient_fx():
 	if stripe.texture != null:
 		y_offset = stripe.texture.get_height() * stripe.scale.y * 0.5
 	stripe.position = Vector2(-1900, 540 - y_offset)
-	stripe.z_index = 5
+	stripe.z_index = -10
 	stripe.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(stripe)
 
@@ -312,6 +313,18 @@ func _draw_enemies():
 		var level_text := "%d" % int(mission_data.get("intLevel", 1))
 		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
 
+		var raw_enemy: Variant = Global.arrayEnemies[enemy_id]
+		if raw_enemy != null:
+			var enemy_data: Dictionary = raw_enemy
+			var enemy_name := _break_after_first_word(str(enemy_data.get("name", "Enemy")))
+			var ability_index := int(enemy_data.get("ability", 1))
+			var ability_name := "Ability"
+			if ability_index > 0 and ability_index < Global.arrayAbilities.size() and Global.arrayAbilities[ability_index] != null:
+				ability_name = str(Global.arrayAbilities[ability_index])
+			ability_name = _break_after_first_word(ability_name)
+			_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(88, -48), 24), enemy_name, 24, 276, Color.WHITE)
+			_draw_centered_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(88, 179), 24), ability_name, 24, 276, Color.WHITE)
+
 func _draw_roster():
 	if arcade_font == null:
 		return
@@ -457,4 +470,34 @@ func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, 
 		if outline_color.a > 0.0:
 			draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, outline_color)
 		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+		y_offset += line_height
+
+func _draw_centered_wrapped_text(font: Font, center_pos: Vector2, text: String, font_size: int, max_width: int, color: Color):
+	var normalized_text := text.replace("\n", " \n ")
+	var words := normalized_text.split(" ")
+	var lines := []
+	var current_line := ""
+
+	for word in words:
+		if word == "\n":
+			if current_line.length() > 0:
+				lines.append(current_line)
+				current_line = ""
+			continue
+		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
+		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		if text_size.x > max_width and current_line.length() > 0:
+			lines.append(current_line)
+			current_line = word
+		else:
+			current_line = test_text
+
+	if current_line.length() > 0:
+		lines.append(current_line)
+
+	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
+	var y_offset := 0.0
+	for line in lines:
+		var line_width := font.get_string_size(line, 0, -1, font_size).x
+		draw_string(font, center_pos + Vector2(-line_width * 0.5, y_offset), line, 0, -1, font_size, color)
 		y_offset += line_height
