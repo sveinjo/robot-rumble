@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://star1b" path="res://assets/sprites/Star1b.png" id="2_star1b"]
 
 [node name="ParticleOverlay" type="Sprite2D"]
-z_index = -69
+z_index = 5
 texture = ExtResource("2_star1b")
 script = ExtResource("1_particle_overlay")
 
