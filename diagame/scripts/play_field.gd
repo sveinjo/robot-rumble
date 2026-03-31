@@ -33,6 +33,9 @@ var mission_data: Dictionary = {}
 var mission_enemies: Array[int] = []
 
 var engage_slots: Array[int] = [0, 0, 0, 0] # 1..3 used
+var hovered_roster_slot: int = 0
+var hovered_engage_slot: int = 0
+var hovered_start_button: bool = false
 var current_win_chance: float = 0.0
 var battle_complete: bool = false
 var battle_won: bool = false
@@ -153,12 +156,37 @@ func _reset_engage_state():
 
 func _process(delta: float):
 	_update_layout_to_viewport()
+	_update_hover_state()
 	_update_starfield_speed_from_chance()
 	if show_results:
 		result_timer += delta
 		if result_timer >= 3.0:
 			_return_to_mission_select()
 	queue_redraw()
+
+func _update_hover_state():
+	hovered_roster_slot = 0
+	hovered_engage_slot = 0
+	hovered_start_button = false
+
+	if battle_complete:
+		return
+
+	var local_mouse := to_local(get_viewport().get_mouse_position())
+
+	for hero_id in range(1, 6):
+		var roster_rect := Rect2(Vector2(ROSTER_X, ROSTER_Y[hero_id]), CARD_SIZE)
+		if roster_rect.has_point(local_mouse):
+			hovered_roster_slot = hero_id
+			return
+
+	for s in range(1, 4):
+		var engage_rect := Rect2(Vector2(ENEMY_X[s], ENGAGE_Y), CARD_SIZE)
+		if engage_rect.has_point(local_mouse):
+			hovered_engage_slot = s
+			return
+
+	hovered_start_button = _get_start_button_rect().has_point(local_mouse) and current_win_chance > 0.0
 
 func _input(event: InputEvent):
 	if not (event is InputEventMouseButton) or not event.pressed:
@@ -431,6 +459,8 @@ func _draw_roster():
 			draw_texture_rect(tex, rect, false, Color(1, 1, 1, alpha))
 		else:
 			draw_rect(rect, Color(0.2, 0.2, 0.2, 0.85), true)
+		if hovered_roster_slot == hero_id:
+			draw_rect(rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 		if frame_texture != null:
 			var frame_rect := Rect2(rect.position, FRAME_SIZE)
 			draw_texture_rect(frame_texture, frame_rect, false)
@@ -457,6 +487,8 @@ func _draw_engage_slots():
 		return
 	for s in range(1, 4):
 		var rect := Rect2(Vector2(ENEMY_X[s], ENGAGE_Y), CARD_SIZE)
+		if hovered_engage_slot == s and engage_slots[s] != 0:
+			draw_rect(rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 		if empty_box_texture != null:
 			draw_texture_rect(empty_box_texture, rect, false)
 		else:
@@ -491,6 +523,8 @@ func _draw_bottom_ui():
 	# Start button at x=1563,y=761 (missionStartButton replacement)
 	var button_rect := _get_start_button_rect()
 	var enabled := current_win_chance > 0.0 and not battle_complete
+	if hovered_start_button:
+		draw_rect(button_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 	if next_button_texture != null:
 		draw_texture_rect(next_button_texture, button_rect, false, Color(1, 1, 1, 1.0 if enabled else 0.65))
 	else:

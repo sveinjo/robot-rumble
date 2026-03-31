@@ -255,6 +255,8 @@ func _draw_mission_grid():
 
 		if idx == 5 and not Global.base_overtaken:
 			draw_rect(slot_rect, Color(0.08, 0.08, 0.08, 0.95), true)
+			if is_hovered:
+				draw_rect(slot_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 			if frame_texture:
 				draw_texture_rect(frame_texture, frame_rect, false)
 			var home_text := _break_after_first_word("HOME BASE")

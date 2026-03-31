@@ -39,6 +39,7 @@ var win_flag: bool = false
 var battle_started: bool = false
 var battle_finished: bool = false
 var return_visible: bool = false
+var hovered_return_button: bool = false
 var reward_visible: bool = false
 var xp_reward: int = 0
 
@@ -178,10 +179,18 @@ func _update_layout_to_viewport():
 
 func _process(delta: float):
 	_update_layout_to_viewport()
+	_update_hover_state()
 	_update_starfield_state(delta)
 	_update_fighter_motion(delta)
 	_update_battle_timeline(delta)
 	queue_redraw()
+
+func _update_hover_state():
+	hovered_return_button = false
+	if not return_visible:
+		return
+	var local_mouse := to_local(get_viewport().get_mouse_position())
+	hovered_return_button = _get_return_button_rect().has_point(local_mouse)
 
 func _update_starfield_state(_delta: float):
 	# Keep fight-room acceleration effect while shared manager handles actual spawning.
@@ -478,6 +487,8 @@ func _draw_return_button():
 		return
 	var r := _get_return_button_rect()
 	var tint := Color(1, 1, 1, 1.0 if return_visible else 0.65)
+	if hovered_return_button:
+		draw_rect(r.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 	if next_button_texture != null:
 		draw_texture_rect(next_button_texture, r, false, tint)
 	else:
