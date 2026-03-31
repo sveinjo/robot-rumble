@@ -369,7 +369,7 @@ func _input(event: InputEvent):
 	var me: InputEventMouseButton = event
 
 	if me.button_index == MOUSE_BUTTON_RIGHT:
-		get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
+		_return_to_mission_select()
 		return
 
 	if me.button_index != MOUSE_BUTTON_LEFT:
@@ -379,7 +379,11 @@ func _input(event: InputEvent):
 		return
 	var local_p: Vector2 = to_local(me.position)
 	if _get_return_button_rect().has_point(local_p):
-		get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
+		_return_to_mission_select()
+
+func _return_to_mission_select():
+	Global.reset_starfield_defaults()
+	get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
 
 func _draw():
 	_draw_title()

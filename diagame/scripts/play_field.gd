@@ -149,7 +149,7 @@ func _process(delta: float):
 	if show_results:
 		result_timer += delta
 		if result_timer >= 3.0:
-			get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
+			_return_to_mission_select()
 	queue_redraw()
 
 func _input(event: InputEvent):
@@ -158,7 +158,7 @@ func _input(event: InputEvent):
 	var mouse_event: InputEventMouseButton = event
 
 	if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
-		get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
+		_return_to_mission_select()
 		return
 
 	if mouse_event.button_index != MOUSE_BUTTON_LEFT or battle_complete:
@@ -316,6 +316,10 @@ func _execute_battle():
 	else:
 		print("fight_room is not ported yet.")
 		battle_complete = false
+
+func _return_to_mission_select():
+	Global.reset_starfield_defaults()
+	get_tree().change_scene_to_file("res://scenes/mission_select.tscn")
 
 func _apply_level_up():
 	var xp_reward := int(mission_data.get("intXp", 100))
