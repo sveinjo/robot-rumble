@@ -4,6 +4,8 @@ const SLOT_X: Array[int] = [0, 913, 1238, 1563]
 const SLOT_Y: Array[int] = [0, 143, 452, 761]
 const HERO_Y: Array[int] = [0, 68, 260, 452, 644, 836]
 const CARD_SIZE := Vector2(176, 176)
+const FRAME_SIZE := Vector2(197, 176)  # Frame sprite is wider than card
+const LEVEL_OFFSET := Vector2(164, 22)
 
 var frame_texture: Texture2D
 var hero_textures: Dictionary = {}
@@ -42,6 +44,7 @@ func _setup_ambient_fx():
 	marker.position = Vector2(1326, 540)
 	marker.texture = marker_tex
 	marker.script = load("res://scripts/marker.gd")
+	marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	marker.z_index = 20
 	add_child(marker)
 
@@ -49,14 +52,42 @@ func _setup_ambient_fx():
 	marker2.position = Vector2(1326, 540)
 	marker2.texture = marker_tex
 	marker2.script = load("res://scripts/marker2.gd")
+	marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	marker2.z_index = 20
 	add_child(marker2)
 
+	# Add flares for each row at Y positions matching the mission grid rows
+	"""for y_pos in [231.0, 540.0, 849.0]:
+		var marker := Sprite2D.new()
+		marker.position = Vector2(1326, y_pos)
+		marker.texture = marker_tex
+		marker.script = load("res://scripts/marker.gd")
+		marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		marker.z_index = 20
+		add_child(marker) 
+
+		var marker2 := Sprite2D.new()
+		marker2.position = Vector2(1326, y_pos)
+		marker2.texture = marker_tex
+		marker2.script = load("res://scripts/marker2.gd")
+		marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		marker2.z_index = 20
+		add_child(marker2)"""
+
 	for y_pos in [231.0, 540.0, 849.0]:
 		var stripe: Sprite2D = particle_overlay_scene.instantiate()
-		stripe.position = Vector2(-1900, y_pos)
+		stripe.scale = Vector2(40, 11)
+		var y_offset := 0.0
+		if stripe.texture != null:
+			y_offset = stripe.texture.get_height() * stripe.scale.y * 0.5
+		stripe.position = Vector2(-1900, y_pos - y_offset)
 		stripe.z_index = 5
+		stripe.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		add_child(stripe)
+
+	# Deploy shared side menu for mission select
+	# if Global.common_menu != null:
+	#	Global.common_menu.panel_open = true
 
 func _generate_missions_if_needed():
 	for i in range(1, 10):
@@ -175,13 +206,16 @@ func _draw():
 
 func _draw_titles():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
-	draw_string(font, Vector2(1163, 47), "SELECT MISSION", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color(0, 0, 1))
-	draw_string(font, Vector2(1160, 44), "SELECT MISSION", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color.WHITE)
+	var title_blue_pos := _with_text_height(Vector2(1163, 47), 24)
+	var title_white_pos := _with_text_height(Vector2(1160, 44), 24)
+	draw_string(font, title_blue_pos, "SELECT MISSION", 0, 440, 24, Color.BLUE)
+	draw_string(font, title_white_pos, "SELECT MISSION", 0, 440, 24, Color.WHITE)
 
 func _draw_roster():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
 	for i in range(1, 6):
 		var hero_rect := Rect2(Vector2(15, HERO_Y[i]), CARD_SIZE)
+		var hero_frame_rect := Rect2(Vector2(15, HERO_Y[i]), FRAME_SIZE)
 		var hero_tex: Texture2D = hero_textures.get(i, null)
 		if hero_tex:
 			draw_texture_rect(hero_tex, hero_rect, false, Color(1, 1, 1, 0.25))
@@ -189,7 +223,7 @@ func _draw_roster():
 			draw_rect(hero_rect, Color(0.2, 0.2, 0.2, 0.75), true)
 
 		if frame_texture:
-			draw_texture_rect(frame_texture, hero_rect, false)
+			draw_texture_rect(frame_texture, hero_frame_rect, false)
 
 		var hero_data: Dictionary = Global.arrayHeroes[i]
 		if hero_data == null:
@@ -203,28 +237,34 @@ func _draw_roster():
 		var current_level_xp: int = xp - int(Global.arrayLevels[level])
 		var level_delta: int = max(1, int(next_level) - int(Global.arrayLevels[level]))
 
-		var info_text := "%s XP:%d/%d %s" % [str(hero_data.get("class", "Hero")), current_level_xp, level_delta, ability_name]
-		draw_string(font, Vector2(hero_rect.position.x + 204, hero_rect.position.y + 22), info_text, HORIZONTAL_ALIGNMENT_LEFT, 300, 16, Color.BLACK)
+		var hero_class: String = str(hero_data.get("class", "Hero"))
+		var hero_info := "%s XP:%d/%d %s" % [hero_class, current_level_xp, level_delta, ability_name]
+		hero_info = _break_after_first_word(hero_info)
+		# Draw level inside the shield and one wrapped info line like GameMaker.
+		draw_string(font, _with_text_height(hero_rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
+		_draw_wrapped_text(font, _with_text_height(hero_rect.position + Vector2(204, 22), 24), hero_info, 24, 300, Color.WHITE)
 
 func _draw_mission_grid():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
 
 	for idx in range(1, 10):
 		var slot_rect := _get_slot_rect(idx)
+		var frame_rect := Rect2(slot_rect.position, FRAME_SIZE)
 		var is_hovered := hovered_slot == idx
 
 		if idx == 5 and not Global.base_overtaken:
 			draw_rect(slot_rect, Color(0.08, 0.08, 0.08, 0.95), true)
 			if frame_texture:
-				draw_texture_rect(frame_texture, slot_rect, false)
-			draw_string(font, slot_rect.position + Vector2(16, 96), "HOME BASE", HORIZONTAL_ALIGNMENT_LEFT, 176, 20, Color.WHITE)
+				draw_texture_rect(frame_texture, frame_rect, false)
+			var home_text := _break_after_first_word("HOME BASE")
+			_draw_wrapped_text(font, _with_text_height(slot_rect.position + Vector2(16, 16), 24), home_text, 24, 176, Color.WHITE)
 			continue
 
 		var raw_mission: Variant = Global.arrayMissions[idx]
 		if raw_mission == null:
 			draw_rect(slot_rect, Color(0.05, 0.05, 0.05, 0.75), true)
 			if frame_texture:
-				draw_texture_rect(frame_texture, slot_rect, false)
+				draw_texture_rect(frame_texture, frame_rect, false)
 			continue
 		var mission: Dictionary = raw_mission
 
@@ -233,7 +273,10 @@ func _draw_mission_grid():
 		var enemy_tex: Texture2D = enemy_textures.get(enemy_id, null)
 		if is_hovered:
 			draw_rect(slot_rect, Color(0.04, 0.04, 0.1, 0.95), true)
-			draw_string(font, slot_rect.position + Vector2(10, 98), "Reward: %d XP" % int(mission.get("intXp", 0)), HORIZONTAL_ALIGNMENT_LEFT, 176, 16, Color.WHITE)
+			var reward_text := "Reward: %d XP" % int(mission.get("intXp", 0))
+			reward_text = _break_after_first_word(reward_text)
+			_draw_wrapped_text(font, _with_text_height(slot_rect.position + Vector2(13, 13), 24), reward_text, 24, 176, Color.BLUE)
+			_draw_wrapped_text(font, _with_text_height(slot_rect.position + Vector2(10, 10), 24), reward_text, 24, 176, Color.WHITE)
 		else:
 			if enemy_tex:
 				draw_texture_rect(enemy_tex, slot_rect, false, Color(1, 1, 1, alpha))
@@ -241,10 +284,11 @@ func _draw_mission_grid():
 				draw_rect(slot_rect, Color(0.2, 0.2, 0.2, alpha), true)
 
 		if frame_texture:
-			draw_texture_rect(frame_texture, slot_rect, false)
+			draw_texture_rect(frame_texture, frame_rect, false)
 
-		var level_text := "Lv %d" % int(mission.get("intLevel", 1))
-		draw_string(font, slot_rect.position + Vector2(164, 22), level_text, HORIZONTAL_ALIGNMENT_LEFT, 176, 16, Color.BLACK)
+		var level_text := "%d" % int(mission.get("intLevel", 1))
+		# Draw level number inside the shield in black.
+		draw_string(font, _with_text_height(slot_rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
 
 		if is_hovered:
 			draw_rect(slot_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
@@ -253,3 +297,47 @@ func _get_slot_rect(index: int) -> Rect2:
 	var x_idx := ((index - 1) % 3) + 1
 	var y_idx := int((index - 1) / 3) + 1
 	return Rect2(Vector2(SLOT_X[x_idx], SLOT_Y[y_idx]), CARD_SIZE)
+
+func _with_text_height(pos: Vector2, font_size: int) -> Vector2:
+	return pos + Vector2(0, float(font_size))
+
+func _break_after_first_word(text: String) -> String:
+	var split_index := text.find(" ")
+	if split_index == -1:
+		return text
+	return text.substr(0, split_index) + "\n" + text.substr(split_index + 1)
+
+# Helper function to wrap text similar to GameMaker's draw_text_ext
+func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, max_width: int, color: Color, outline_color: Color = Color.TRANSPARENT):
+	# Split text into words and wrap based on max_width
+	var normalized_text := text.replace("\n", " \n ")
+	var words := normalized_text.split(" ")
+	var lines := []
+	var current_line := ""
+	
+	for word in words:
+		if word == "\n":
+			if current_line.length() > 0:
+				lines.append(current_line)
+				current_line = ""
+			continue
+		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
+		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		
+		if text_size.x > max_width and current_line.length() > 0:
+			lines.append(current_line)
+			current_line = word
+		else:
+			current_line = test_text
+	
+	if current_line.length() > 0:
+		lines.append(current_line)
+	
+	# Draw outlined text for each line
+	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
+	var y_offset := 0.0
+	for line in lines:
+		if outline_color.a > 0.0:
+			draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, outline_color)
+		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+		y_offset += line_height
