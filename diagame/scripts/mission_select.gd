@@ -8,6 +8,7 @@ const FRAME_SIZE := Vector2(197, 176)  # Frame sprite is wider than card
 const LEVEL_OFFSET := Vector2(164, 22)
 
 var frame_texture: Texture2D
+var empty_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var arcade_font: Font
@@ -20,6 +21,7 @@ func _ready():
 	Global.ensure_ported_data()
 	arcade_font = Global.arcade_font if Global.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
 	frame_texture = load("res://assets/sprites/Frame_0.png")
+	empty_texture = load("res://assets/sprites/Empty_0.png")
 
 	_load_textures()
 	_setup_ambient_fx()
@@ -254,11 +256,12 @@ func _draw_mission_grid():
 		var is_hovered := hovered_slot == idx
 
 		if idx == 5 and not Global.base_overtaken:
-			draw_rect(slot_rect, Color(0.08, 0.08, 0.08, 0.95), true)
+			if empty_texture != null:
+				draw_texture_rect(empty_texture, slot_rect, false)
+			else:
+				draw_rect(slot_rect, Color(0.08, 0.08, 0.08, 0.95), true)
 			if is_hovered:
 				draw_rect(slot_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
-			if frame_texture:
-				draw_texture_rect(frame_texture, frame_rect, false)
 			var home_text := _break_after_first_word("HOME BASE")
 			_draw_wrapped_text(font, _with_text_height(slot_rect.position + Vector2(16, 16), 24), home_text, 24, 176, Color.WHITE)
 			continue
