@@ -16,10 +16,14 @@ const REWARD_PANEL_POS := Vector2(913, 761)
 const START_BUTTON_SIZE := CARD_SIZE
 const DESIGN_SIZE := Vector2(1920, 1080)
 
+@export var use_gm_dynamic_guidance: bool = true
+
 var frame_texture: Texture2D
 var flare_texture: Texture2D
 var empty_box_texture: Texture2D
 var next_button_texture: Texture2D
+var marker_sprite: Sprite2D
+var marker2_sprite: Sprite2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var arcade_font: Font
@@ -106,21 +110,21 @@ func _load_textures():
 			enemy_textures[i] = load(str(enemy["texture_path"]))
 
 func _setup_ambient_fx():
-	var marker := Sprite2D.new()
-	marker.position = Vector2(1001, 540)
-	marker.texture = flare_texture
-	marker.script = load("res://scripts/marker.gd")
-	marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker.z_index = -10
-	add_child(marker)
+	marker_sprite = Sprite2D.new()
+	marker_sprite.position = Vector2(1001, 540)
+	marker_sprite.texture = flare_texture
+	marker_sprite.script = load("res://scripts/marker.gd")
+	marker_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	marker_sprite.z_index = -10
+	add_child(marker_sprite)
 
-	var marker2 := Sprite2D.new()
-	marker2.position = Vector2(1001, 540)
-	marker2.texture = flare_texture
-	marker2.script = load("res://scripts/marker2.gd")
-	marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	marker2.z_index = -10
-	add_child(marker2)
+	marker2_sprite = Sprite2D.new()
+	marker2_sprite.position = Vector2(1001, 540)
+	marker2_sprite.texture = flare_texture
+	marker2_sprite.script = load("res://scripts/marker2.gd")
+	marker2_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	marker2_sprite.z_index = -10
+	add_child(marker2_sprite)
 
 	var stripe: Sprite2D = particle_overlay_scene.instantiate()
 	stripe.scale = Vector2(40, 11)
@@ -137,9 +141,11 @@ func _reset_engage_state():
 		engage_slots[i] = 0
 		Global.arrayEngageSlots[i] = null
 	_recalculate_win_chance()
+	_update_marker_target()
 
 func _process(delta: float):
 	_update_layout_to_viewport()
+	_update_starfield_speed_from_chance()
 	if show_results:
 		result_timer += delta
 		if result_timer >= 3.0:
@@ -248,6 +254,54 @@ func _recalculate_win_chance():
 
 	current_win_chance = clampf(current_win_chance, 0.0, 100.0)
 	Global.intBattleWinChance = current_win_chance
+	_update_marker_target()
+
+func _update_marker_target():
+	if marker_sprite == null or marker2_sprite == null:
+		return
+
+	if not use_gm_dynamic_guidance:
+		var default_target := Vector2(1001, 540)
+		marker_sprite.position = default_target
+		marker2_sprite.position = default_target
+		return
+
+	# GameMaker moveMarker.gml behavior:
+	# slot1 empty -> x=1001,y=540
+	# slot2 empty -> x=1326,y=540
+	# slot3 empty -> x=1651,y=540
+	# all full and winChance>0 -> x=1651,y=849 (fight button)
+	# all full and winChance==0 -> x=1825,y=0
+	var target := Vector2(1001, 540)
+	if engage_slots[1] == 0:
+		target = Vector2(1001, 540)
+	elif engage_slots[2] == 0:
+		target = Vector2(1326, 540)
+	elif engage_slots[3] == 0:
+		target = Vector2(1651, 540)
+	elif current_win_chance > 0.0:
+		target = Vector2(1651, 849)
+	else:
+		target = Vector2(1825, 0)
+
+	marker_sprite.position = target
+	marker2_sprite.position = target
+
+func _update_starfield_speed_from_chance():
+	if not use_gm_dynamic_guidance:
+		return
+
+	# GameMaker missionCancelButton Step behavior in playField:
+	# target = 24 * chanceBar.chance / 200
+	# if starSpeed < target: starSpeed *= 1.03; starSize *= 1.03
+	# elif starSpeed > target and starSpeed > 2: starSpeed *= 0.97; starSize *= 0.97
+	var target_speed: float = 24.0 * current_win_chance / 200.0
+	if Global.star_speed < target_speed:
+		Global.star_speed *= 1.03
+		Global.star_size *= 1.03
+	elif Global.star_speed > target_speed and Global.star_speed > 2.0:
+		Global.star_speed *= 0.97
+		Global.star_size *= 0.97
 
 func _execute_battle():
 	battle_complete = true

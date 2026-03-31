@@ -31,7 +31,7 @@ StarfieldManager="*res://scripts/starfield_manager.gd"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="viewport"
-textures/canvas_textures/default_texture_filter=0
+textures/canvas_textures/default_texture_filter=1
 
 [input]
 
@@ -47,7 +47,7 @@ toggle_fullscreen={
 
 [rendering]
 
-textures/canvas_textures/default_texture_filter=0
+textures/canvas_textures/default_texture_filter=1
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method.mobile="forward_plus"
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
