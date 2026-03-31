@@ -6,7 +6,10 @@
 [node name="FightRoom" type="Node2D"]
 script = ExtResource("1_script")
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Background" type="Sprite2D" parent="BackgroundLayer"]
 position = Vector2(960, 540)
 texture = ExtResource("2_bg")
 centered = true

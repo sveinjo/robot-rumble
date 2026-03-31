@@ -11,15 +11,28 @@ var particle_star2_scene = preload("res://scenes/particle_star2.tscn")
 var particle_star3_scene = preload("res://scenes/particle_star3.tscn")
 
 var container: Node2D
+var debug_sample_timer: float = 0.0
+var last_star_counts: Dictionary = {
+	"fast": 0,
+	"mid": 0,
+	"slow": 0,
+	"total": 0
+}
 
 func _ready():
-	layer = -50
+	layer = -1
 	container = Node2D.new()
 	container.name = "StarContainer"
 	add_child(container)
 	spawn_timer = spawn_interval
+	debug_sample_timer = 0.0
 
 func _process(delta: float):
+	debug_sample_timer -= delta
+	if debug_sample_timer <= 0.0:
+		last_star_counts = _count_star_types()
+		debug_sample_timer = 0.25
+
 	if not enabled:
 		return
 	spawn_timer -= delta
@@ -59,3 +72,29 @@ func reset_defaults():
 	enabled = true
 	spawn_interval = DEFAULT_SPAWN_INTERVAL
 	spawn_timer = spawn_interval
+
+func get_star_type_counts() -> Dictionary:
+	return last_star_counts
+
+func _count_star_types() -> Dictionary:
+	var fast := 0
+	var mid := 0
+	var slow := 0
+
+	for child in container.get_children():
+		if not child.has_method("get"):
+			continue
+		var mult: int = int(child.get("speed_multiplier"))
+		if mult >= 4:
+			fast += 1
+		elif mult >= 2:
+			mid += 1
+		else:
+			slow += 1
+
+	return {
+		"fast": fast,
+		"mid": mid,
+		"slow": slow,
+		"total": fast + mid + slow
+	}

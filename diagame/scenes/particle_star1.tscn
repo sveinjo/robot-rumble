@@ -7,4 +7,4 @@
 z_index = -100
 texture = ExtResource("1")
 script = ExtResource("2")
-speed_multiplier = 6
+speed_multiplier = 4
