@@ -233,16 +233,17 @@ func _draw_roster():
 		var ability_name: String = str(Global.arrayAbilities[ability_index]) if ability_index < Global.arrayAbilities.size() else "Ability"
 		var level := int(hero_data.get("intLevel", 1))
 		var xp := int(hero_data.get("intXp", 0))
+		var current_level_floor: int = int(Global.arrayLevels[level]) if level < Global.arrayLevels.size() else 0
 		var next_level: int = int(Global.arrayLevels[level + 1]) if level + 1 < Global.arrayLevels.size() else xp + 1
-		var current_level_xp: int = xp - int(Global.arrayLevels[level])
-		var level_delta: int = max(1, int(next_level) - int(Global.arrayLevels[level]))
+		var current_level_xp: int = max(0, xp - current_level_floor)
+		var level_delta: int = max(1, next_level - current_level_floor)
 
 		var hero_class: String = str(hero_data.get("class", "Hero"))
-		var hero_info := "%s XP:%d/%d %s" % [hero_class, current_level_xp, level_delta, ability_name]
-		hero_info = _break_after_first_word(hero_info)
-		# Draw level inside the shield and one wrapped info line like GameMaker.
+		# Draw level inside the shield, then class / XP progress / ability on separate lines.
 		draw_string(font, _with_text_height(hero_rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
-		_draw_wrapped_text(font, _with_text_height(hero_rect.position + Vector2(204, 22), 24), hero_info, 24, 300, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 22), 24), hero_class, 0, 300, 24, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], 0, 300, 24, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 72), 24), ability_name, 0, 300, 24, Color.WHITE)
 
 func _draw_mission_grid():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
@@ -283,15 +284,15 @@ func _draw_mission_grid():
 			else:
 				draw_rect(slot_rect, Color(0.2, 0.2, 0.2, alpha), true)
 
+		if is_hovered:
+			draw_rect(slot_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
+
 		if frame_texture:
 			draw_texture_rect(frame_texture, frame_rect, false)
 
 		var level_text := "%d" % int(mission.get("intLevel", 1))
 		# Draw level number inside the shield in black.
 		draw_string(font, _with_text_height(slot_rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
-
-		if is_hovered:
-			draw_rect(slot_rect.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 
 func _get_slot_rect(index: int) -> Rect2:
 	var x_idx := ((index - 1) % 3) + 1

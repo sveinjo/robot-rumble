@@ -27,6 +27,7 @@ var marker2_sprite: Sprite2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var arcade_font: Font
+var card_sfx_player: AudioStreamPlayer
 
 var mission_data: Dictionary = {}
 var mission_enemies: Array[int] = []
@@ -60,11 +61,18 @@ func _ready():
 
 	_extract_mission_enemies()
 	_load_textures()
+	_setup_audio()
 	_setup_ambient_fx()
 	_reset_engage_state()
 	_update_layout_to_viewport()
 
 	queue_redraw()
+
+func _setup_audio():
+	card_sfx_player = AudioStreamPlayer.new()
+	card_sfx_player.stream = load("res://assets/sounds/sound1.wav")
+	card_sfx_player.volume_db = -2.0
+	add_child(card_sfx_player)
 
 func _update_layout_to_viewport():
 	var viewport_size: Vector2 = get_viewport_rect().size
@@ -185,6 +193,7 @@ func _handle_roster_click(p: Vector2) -> bool:
 				engage_slots[s] = 0
 				Global.arrayEngageSlots[s] = null
 				_recalculate_win_chance()
+				_play_card_sfx()
 				return true
 
 		# Otherwise put in first empty slot.
@@ -193,6 +202,7 @@ func _handle_roster_click(p: Vector2) -> bool:
 				engage_slots[s] = hero_id
 				Global.arrayEngageSlots[s] = hero_id
 				_recalculate_win_chance()
+				_play_card_sfx()
 				return true
 		return true
 	return false
@@ -206,8 +216,13 @@ func _handle_engage_click(p: Vector2) -> bool:
 			engage_slots[s] = 0
 			Global.arrayEngageSlots[s] = null
 			_recalculate_win_chance()
+			_play_card_sfx()
 		return true
 	return false
+
+func _play_card_sfx():
+	if card_sfx_player != null and card_sfx_player.stream != null:
+		card_sfx_player.play()
 
 func _recalculate_win_chance():
 	current_win_chance = 0.0
@@ -427,10 +442,15 @@ func _draw_roster():
 		var ability_name := "Ability"
 		if ability_idx > 0 and ability_idx < Global.arrayAbilities.size() and Global.arrayAbilities[ability_idx] != null:
 			ability_name = str(Global.arrayAbilities[ability_idx])
-		var info := "%s XP:%d %s" % [class_label, xp, ability_name]
-		info = _break_after_first_word(info)
+		var current_level_floor: int = int(Global.arrayLevels[level]) if level < Global.arrayLevels.size() else 0
+		var next_level: int = int(Global.arrayLevels[level + 1]) if level + 1 < Global.arrayLevels.size() else xp + 1
+		var current_level_xp: int = max(0, xp - current_level_floor)
+		var level_delta: int = max(1, next_level - current_level_floor)
+
 		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
-		_draw_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), info, 24, 300, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), class_label, 0, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], 0, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 72), 24), ability_name, 0, 300, 24, Color.WHITE)
 
 func _draw_engage_slots():
 	if arcade_font == null:

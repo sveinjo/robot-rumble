@@ -129,10 +129,15 @@ func _draw_roster():
 		var ability_name := "Ability"
 		if ability_idx > 0 and ability_idx < Global.arrayAbilities.size() and Global.arrayAbilities[ability_idx] != null:
 			ability_name = str(Global.arrayAbilities[ability_idx])
-		var label := "%s XP:%d %s" % [str(hero.get("class", "Hero")), xp, ability_name]
-		label = _break_after_first_word(label)
+		var current_level_floor: int = int(Global.arrayLevels[level]) if level < Global.arrayLevels.size() else 0
+		var next_level: int = int(Global.arrayLevels[level + 1]) if level + 1 < Global.arrayLevels.size() else xp + 1
+		var current_level_xp: int = max(0, xp - current_level_floor)
+		var level_delta: int = max(1, next_level - current_level_floor)
+		var hero_class := str(hero.get("class", "Hero"))
 		draw_string(arcade_font, _with_text_height(rect.position + Vector2(164, 22), 24), "%d" % level, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
-		_draw_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), label, 24, 300, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), hero_class, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 72), 24), ability_name, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
 
 func _draw_tiles():
 	if arcade_font == null:
