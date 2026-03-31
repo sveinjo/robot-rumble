@@ -13,11 +13,13 @@ const LEVEL_OFFSET := Vector2(164, 22)
 const CHANCE_POS := Vector2(1238, 761)
 const START_BUTTON_POS := Vector2(1563, 761)
 const REWARD_PANEL_POS := Vector2(913, 761)
-const START_BUTTON_SIZE := Vector2(176, 88)
+const START_BUTTON_SIZE := CARD_SIZE
 const DESIGN_SIZE := Vector2(1920, 1080)
 
 var frame_texture: Texture2D
 var flare_texture: Texture2D
+var empty_box_texture: Texture2D
+var next_button_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var arcade_font: Font
@@ -41,6 +43,8 @@ func _ready():
 	arcade_font = Global.arcade_font if Global.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
 	frame_texture = load("res://assets/sprites/Frame_0.png")
 	flare_texture = load("res://assets/sprites/Flare.png")
+	empty_box_texture = load("res://assets/sprites/Empty_0.png")
+	next_button_texture = load("res://assets/sprites/Next_0.png")
 
 	var mission_idx := Global.intMissionSelected
 	var raw_mission: Variant = Global.arrayMissions[mission_idx]
@@ -281,6 +285,7 @@ func _apply_level_up():
 
 func _draw():
 	_draw_title()
+	_draw_vs()
 	_draw_enemies()
 	_draw_roster()
 	_draw_engage_slots()
@@ -295,6 +300,13 @@ func _draw_title():
 	var white_pos := _with_text_height(TITLE_POS, 24)
 	draw_string(arcade_font, blue_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color(0.0, 0.0, 1.0))
 	draw_string(arcade_font, white_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color.WHITE)
+
+func _draw_vs():
+	if arcade_font == null:
+		return
+	var base_pos := _with_text_height(VS_POS, 24)
+	draw_string(arcade_font, base_pos + Vector2(3, 3), "VS.", 0, 176, 24, Color(0.0, 0.0, 1.0))
+	draw_string(arcade_font, base_pos, "VS.", 0, 176, 24, Color.WHITE)
 
 func _draw_enemies():
 	if arcade_font == null:
@@ -367,17 +379,15 @@ func _draw_engage_slots():
 		return
 	for s in range(1, 4):
 		var rect := Rect2(Vector2(ENEMY_X[s], ENGAGE_Y), CARD_SIZE)
-		draw_rect(rect, Color(0.05, 0.05, 0.05, 0.75), true)
+		if empty_box_texture != null:
+			draw_texture_rect(empty_box_texture, rect, false)
+		else:
+			draw_rect(rect, Color(0.05, 0.05, 0.05, 0.75), true)
 		var hero_id := engage_slots[s]
 		if hero_id != 0:
 			var tex: Texture2D = hero_textures.get(hero_id, null)
 			if tex != null:
 				draw_texture_rect(tex, rect, false)
-		if frame_texture != null:
-			var frame_rect := Rect2(rect.position, FRAME_SIZE)
-			draw_texture_rect(frame_texture, frame_rect, false)
-		if hero_id == 0:
-			draw_string(arcade_font, _with_text_height(rect.position + Vector2(28, 96), 24), "EMPTY", 0, 120, 24, Color(0.75, 0.75, 0.75))
 
 func _draw_bottom_ui():
 	if arcade_font == null:
@@ -385,33 +395,26 @@ func _draw_bottom_ui():
 
 	# Reward panel (legacy rewardFrame replacement)
 	var reward_rect := Rect2(REWARD_PANEL_POS, CARD_SIZE)
-	draw_rect(reward_rect, Color(0.08, 0.08, 0.08, 0.85), true)
-	if frame_texture != null:
-		var reward_frame_rect := Rect2(reward_rect.position, FRAME_SIZE)
-		draw_texture_rect(frame_texture, reward_frame_rect, false)
-	var reward_text := "Reward %d XP" % int(mission_data.get("intXp", 0))
+	var reward_text := "Reward: %d XP" % int(mission_data.get("intXp", 0))
 	reward_text = _break_after_first_word(reward_text)
-	_draw_wrapped_text(arcade_font, _with_text_height(reward_rect.position + Vector2(12, 96), 24), reward_text, 24, 160, Color.WHITE)
+	_draw_wrapped_text(arcade_font, _with_text_height(reward_rect.position + Vector2(13, 13), 24), reward_text, 24, 176, Color.BLUE)
+	_draw_wrapped_text(arcade_font, _with_text_height(reward_rect.position + Vector2(10, 10), 24), reward_text, 24, 176, Color.WHITE)
 
 	# Chance bar at x=1238,y=761
 	var chance_rect := Rect2(CHANCE_POS, CARD_SIZE)
-	draw_rect(chance_rect, Color(0.08, 0.08, 0.08, 0.85), true)
-	if frame_texture != null:
-		var chance_frame_rect := Rect2(chance_rect.position, FRAME_SIZE)
-		draw_texture_rect(frame_texture, chance_frame_rect, false)
 	var fill_width := (CARD_SIZE.x - 20.0) * (current_win_chance / 100.0)
 	draw_rect(Rect2(chance_rect.position + Vector2(10, 82), Vector2(fill_width, 12)), Color(0.2, 0.9, 0.35, 0.95), true)
-	var win_text := _break_after_first_word("Win %d%%" % int(current_win_chance))
-	_draw_wrapped_text(arcade_font, _with_text_height(chance_rect.position + Vector2(12, 112), 24), win_text, 24, 150, Color.WHITE)
+	var print_chance := int(min(100.0, current_win_chance))
+	var win_text := "Chance to win:\n%d%%" % print_chance
+	win_text = _break_after_first_word(win_text)
+	_draw_wrapped_text(arcade_font, _with_text_height(chance_rect.position + Vector2(13, 13), 24), win_text, 24, 176, Color.BLUE)
+	_draw_wrapped_text(arcade_font, _with_text_height(chance_rect.position + Vector2(10, 10), 24), win_text, 24, 176, Color.WHITE)
 
 	# Start button at x=1563,y=761 (missionStartButton replacement)
 	var button_rect := _get_start_button_rect()
 	var enabled := current_win_chance > 0.0 and not battle_complete
-	var bg := Color(0.12, 0.6, 0.2, 0.95) if enabled else Color(0.2, 0.2, 0.2, 0.8)
-	draw_rect(button_rect, bg, true)
-	if frame_texture != null:
-		var button_frame_rect := Rect2(button_rect.position, FRAME_SIZE)
-		draw_texture_rect(frame_texture, button_frame_rect, false)
+	if next_button_texture != null:
+		draw_texture_rect(next_button_texture, button_rect, false, Color(1, 1, 1, 1.0 if enabled else 0.65))
 	else:
 		draw_rect(button_rect, Color.WHITE, false, 2.0)
 	draw_string(arcade_font, _with_text_height(button_rect.position + Vector2(36, 52), 24), "FIGHT", 0, 120, 24, Color.WHITE)

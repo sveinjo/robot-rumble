@@ -1,13 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://c1wfog3ayv0q3"]
 
-[ext_resource type="Script" path="res://scripts/play_field.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/backgroundPlayField.png" id="2_bg"]
+[ext_resource type="Script" uid="uid://pc1x774hivh4" path="res://scripts/play_field.gd" id="1_script"]
 
-[node name="PlayField" type="Node2D"]
+[node name="PlayField" type="Node2D" unique_id=1578495272]
 script = ExtResource("1_script")
 
-[node name="Background" type="Sprite2D" parent="."]
-position = Vector2(960, 540)
-texture = ExtResource("2_bg")
-centered = true
+[node name="Background" type="Sprite2D" parent="." unique_id=189494451]
 z_index = -200
+position = Vector2(960, 540)
