@@ -6,14 +6,17 @@ const PANEL_MAX_HIDE_SPEED := 50.0
 const MENU_BUTTON_SIZE := Vector2(244, 54)
 const ACTION_BUTTON_SIZE := Vector2(176, 176)
 const MENU_LABEL_SHADOW := Color(0.05, 0.2, 0.8)
+const SAVE_SLOT_1_PATH := "user://savegame_slot1.json"
 
 var panel_open: bool = false
 var panel_velocity: float = 0.0
 var panel_step_accumulator: float = 0.0
+var status_timer: float = 0.0
 
 var root_control: Control
 var menu_button: TextureButton
 var menu_button_label: Label
+var status_label: Label
 var panel: Control
 var panel_back: TextureRect
 var btn_start: TextureButton
@@ -70,6 +73,12 @@ func _ready():
 	menu_button_label = _create_label("MENU", Vector2(16, 16), 24)
 	menu_button.add_child(menu_button_label)
 
+	status_label = _create_label("", Vector2(262, 16), 18)
+	status_label.visible = false
+	status_label.size = Vector2(760, 56)
+	status_label.z_index = 20
+	root_control.add_child(status_label)
+
 	btn_start = _create_action_button("BACK TO TITLE", Vector2(278, 143), _on_start_pressed)
 	btn_load = _create_action_button("LOAD GAME", Vector2(102, 452), _on_load_pressed)
 	btn_save = _create_action_button("SAVE GAME", Vector2(454, 452), _on_save_pressed)
@@ -86,6 +95,9 @@ func _process(delta: float):
 	panel.size.y = vp_size.y
 	panel_back.size = Vector2(760, panel.size.y)
 	panel.visible = panel_open or panel.position.x > -PANEL_WIDTH + 1.0
+	status_label.visible = status_timer > 0.0
+	if status_timer > 0.0:
+		status_timer = maxf(0.0, status_timer - delta)
 
 	panel_step_accumulator += delta * 60.0
 	var steps_to_run := mini(int(panel_step_accumulator), 8)
@@ -161,17 +173,30 @@ func _on_start_pressed():
 
 func _on_load_pressed():
 	panel_open = false
-	if Global.load_game_state():
-		print("Save loaded")
+	if Global.load_game_state(SAVE_SLOT_1_PATH):
+		_set_status("SLOT 1 LOADED", Color(0.2, 1.0, 0.2))
+		call_deferred("_reload_current_scene")
 	else:
-		print("No save found")
+		_set_status("NO SAVE IN SLOT 1", Color(1.0, 0.35, 0.35))
 
 func _on_save_pressed():
 	panel_open = false
-	if Global.save_game_state():
-		print("Game saved")
+	if Global.save_game_state(SAVE_SLOT_1_PATH):
+		_set_status("SLOT 1 SAVED", Color(0.2, 1.0, 0.2))
 	else:
-		print("Save failed")
+		_set_status("SAVE FAILED", Color(1.0, 0.35, 0.35))
 
 func _on_exit_pressed():
 	get_tree().quit()
+
+func _set_status(text: String, color: Color):
+	if status_label == null:
+		return
+	status_label.text = text
+	status_label.add_theme_color_override("font_color", color)
+	status_timer = 2.0
+
+func _reload_current_scene():
+	if get_tree() == null:
+		return
+	get_tree().reload_current_scene()
