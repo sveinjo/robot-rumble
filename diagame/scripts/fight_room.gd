@@ -5,11 +5,13 @@ const CARD_SIZE := Vector2(176, 176)
 const LEFT_X: Array[int] = [0, 730, 506, 282]
 const RIGHT_X: Array[int] = [0, 1014, 1238, 1462]
 const COMBAT_CENTER_SHIFT := 88.0
-const FIGHT_Y := 452.0
+const FIGHT_Y := 540.0
 const REWARD_Y := 652.0
 const RETURN_BUTTON_POS := Vector2(1563, 761)
 const RETURN_BUTTON_SIZE := CARD_SIZE
-const TITLE_POS := Vector2(1160, 44)
+const TITLE_Y := 44.0
+const BANNER_Y := 96.0
+const TEXT_CENTER_X := 960.0
 const START_DELAY := 40.0 / 60.0
 const IMPACT_DELAY := 20.0 / 60.0
 const CHAIN_DELAY := 60.0 / 60.0
@@ -19,7 +21,6 @@ const VICTORY_POST_DELAY := 60.0 / 60.0
 @export var show_star_debug_counts: bool = false
 
 var arcade_font: Font
-var frame_texture: Texture2D
 var flare_texture: Texture2D
 var next_button_texture: Texture2D
 var hero_textures: Dictionary = {}
@@ -54,7 +55,6 @@ func _ready():
 	randomize()
 	Global.ensure_ported_data()
 	arcade_font = Global.arcade_font if Global.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
-	frame_texture = load("res://assets/sprites/Frame_0.png")
 	flare_texture = load("res://assets/sprites/Flare.png")
 	next_button_texture = load("res://assets/sprites/Next_0.png")
 
@@ -442,8 +442,7 @@ func _draw():
 func _draw_title():
 	if arcade_font == null:
 		return
-	draw_string(arcade_font, TITLE_POS + Vector2(3, 3), "BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 420, 28, Color(0, 0, 1))
-	draw_string(arcade_font, TITLE_POS, "BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 420, 28, Color.WHITE)
+	_draw_centered_shadowed_text("BATTLE", Vector2(TEXT_CENTER_X, TITLE_Y), 24, Color.WHITE)
 
 func _draw_lines():
 	for i in range(left_fighters.size()):
@@ -456,8 +455,6 @@ func _draw_lines():
 			draw_texture_rect(tex, rect, false, Color(1, 1, 1, float(f.get("alpha", 1.0))))
 		else:
 			draw_rect(rect, Color(0.3, 0.3, 0.3, float(f.get("alpha", 1.0))), true)
-		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect, false, Color(1, 1, 1, float(f.get("alpha", 1.0))))
 
 		if reward_visible:
 			var reward_anchor := Vector2(LEFT_X[i + 1] + COMBAT_CENTER_SHIFT - (CARD_SIZE.x * 0.5), REWARD_Y)
@@ -475,8 +472,6 @@ func _draw_lines():
 			draw_texture_rect(tex2, rect2, false, Color(1, 1, 1, float(e.get("alpha", 1.0))))
 		else:
 			draw_rect(rect2, Color(0.3, 0.3, 0.3, float(e.get("alpha", 1.0))), true)
-		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect2, false, Color(1, 1, 1, float(e.get("alpha", 1.0))))
 
 func _draw_return_button():
 	if arcade_font == null:
@@ -493,12 +488,11 @@ func _draw_result_banner():
 	if arcade_font == null:
 		return
 	if not battle_finished:
-		var txt := "RESOLVING..."
-		draw_string(arcade_font, Vector2(1110, 96), txt, HORIZONTAL_ALIGNMENT_LEFT, 500, 18, Color(0.9, 0.9, 0.9))
+		_draw_centered_shadowed_text("RESOLVING...", Vector2(TEXT_CENTER_X, BANNER_Y), 24, Color.WHITE)
 		return
 	var result_txt := "VICTORY" if win_flag else "DEFEAT"
 	var c := Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
-	draw_string(arcade_font, Vector2(1110, 96), result_txt, HORIZONTAL_ALIGNMENT_LEFT, 500, 22, c)
+	_draw_centered_shadowed_text(result_txt, Vector2(TEXT_CENTER_X, BANNER_Y), 24, c)
 
 func _get_return_button_rect() -> Rect2:
 	return Rect2(RETURN_BUTTON_POS, RETURN_BUTTON_SIZE)
@@ -530,3 +524,9 @@ func _draw_star_debug_counts():
 		float(slow) / total
 	]
 	draw_string(arcade_font, Vector2(32, 104), info, HORIZONTAL_ALIGNMENT_LEFT, 1200, 16, Color(0.85, 0.95, 1.0, 0.9))
+
+func _draw_centered_shadowed_text(text: String, top_left_center_anchor: Vector2, font_size: int, color: Color):
+	var text_size: Vector2 = arcade_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var base_pos := top_left_center_anchor + Vector2(-text_size.x * 0.5, float(font_size))
+	draw_string(arcade_font, base_pos + Vector2(3, 3), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(0.0, 0.0, 1.0))
+	draw_string(arcade_font, base_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
