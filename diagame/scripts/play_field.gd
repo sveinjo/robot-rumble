@@ -1,12 +1,14 @@
 extends Node2D
 
 const CARD_SIZE := Vector2(176, 176)
+const FRAME_SIZE := Vector2(197, 176)
 const ROSTER_X := 15.0
 const ROSTER_Y: Array[int] = [0, 68, 260, 452, 644, 836]
 const ENEMY_X: Array[int] = [0, 913, 1238, 1563]
 const ENEMY_Y := 143.0
 const ENGAGE_Y := 452.0
 const TITLE_POS := Vector2(1110, 44)
+const LEVEL_OFFSET := Vector2(164, 22)
 const CHANCE_POS := Vector2(1238, 761)
 const START_BUTTON_POS := Vector2(1563, 761)
 const REWARD_PANEL_POS := Vector2(913, 761)
@@ -103,6 +105,7 @@ func _setup_ambient_fx():
 	marker.position = Vector2(1001, 540)
 	marker.texture = flare_texture
 	marker.script = load("res://scripts/marker.gd")
+	marker.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	marker.z_index = 20
 	add_child(marker)
 
@@ -110,12 +113,18 @@ func _setup_ambient_fx():
 	marker2.position = Vector2(1001, 540)
 	marker2.texture = flare_texture
 	marker2.script = load("res://scripts/marker2.gd")
+	marker2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	marker2.z_index = 20
 	add_child(marker2)
 
 	var stripe: Sprite2D = particle_overlay_scene.instantiate()
-	stripe.position = Vector2(-1900, 540)
+	stripe.scale = Vector2(40, 11)
+	var y_offset := 0.0
+	if stripe.texture != null:
+		y_offset = stripe.texture.get_height() * stripe.scale.y * 0.5
+	stripe.position = Vector2(-1900, 540 - y_offset)
 	stripe.z_index = 5
+	stripe.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(stripe)
 
 func _reset_engage_state():
@@ -281,8 +290,10 @@ func _draw():
 func _draw_title():
 	if arcade_font == null:
 		return
-	draw_string(arcade_font, TITLE_POS + Vector2(3, 3), "PREPARE FOR BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color(0.0, 0.0, 1.0))
-	draw_string(arcade_font, TITLE_POS, "PREPARE FOR BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color.WHITE)
+	var blue_pos := _with_text_height(TITLE_POS + Vector2(3, 3), 24)
+	var white_pos := _with_text_height(TITLE_POS, 24)
+	draw_string(arcade_font, blue_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color(0.0, 0.0, 1.0))
+	draw_string(arcade_font, white_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color.WHITE)
 
 func _draw_enemies():
 	if arcade_font == null:
@@ -296,7 +307,10 @@ func _draw_enemies():
 		else:
 			draw_rect(rect, Color(0.2, 0.2, 0.2, 0.85), true)
 		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect, false)
+			var frame_rect := Rect2(rect.position, FRAME_SIZE)
+			draw_texture_rect(frame_texture, frame_rect, false)
+		var level_text := "%d" % int(mission_data.get("intLevel", 1))
+		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
 
 func _draw_roster():
 	if arcade_font == null:
@@ -320,7 +334,8 @@ func _draw_roster():
 		else:
 			draw_rect(rect, Color(0.2, 0.2, 0.2, 0.85), true)
 		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect, false)
+			var frame_rect := Rect2(rect.position, FRAME_SIZE)
+			draw_texture_rect(frame_texture, frame_rect, false)
 
 		var level := int(hero.get("intLevel", 1))
 		var xp := int(hero.get("intXp", 0))
@@ -329,8 +344,10 @@ func _draw_roster():
 		var ability_name := "Ability"
 		if ability_idx > 0 and ability_idx < Global.arrayAbilities.size() and Global.arrayAbilities[ability_idx] != null:
 			ability_name = str(Global.arrayAbilities[ability_idx])
-		var info := "%s  Lv%d  XP:%d  %s" % [class_label, level, xp, ability_name]
-		draw_string(arcade_font, rect.position + Vector2(204, 22), info, HORIZONTAL_ALIGNMENT_LEFT, 420, 16, Color.BLACK)
+		var info := "%s XP:%d %s" % [class_label, xp, ability_name]
+		info = _break_after_first_word(info)
+		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
+		_draw_wrapped_text(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), info, 24, 300, Color.WHITE)
 
 func _draw_engage_slots():
 	if arcade_font == null:
@@ -344,9 +361,10 @@ func _draw_engage_slots():
 			if tex != null:
 				draw_texture_rect(tex, rect, false)
 		if frame_texture != null:
-			draw_texture_rect(frame_texture, rect, false)
+			var frame_rect := Rect2(rect.position, FRAME_SIZE)
+			draw_texture_rect(frame_texture, frame_rect, false)
 		if hero_id == 0:
-			draw_string(arcade_font, rect.position + Vector2(28, 96), "EMPTY", HORIZONTAL_ALIGNMENT_LEFT, 120, 16, Color(0.75, 0.75, 0.75))
+			draw_string(arcade_font, _with_text_height(rect.position + Vector2(28, 96), 24), "EMPTY", 0, 120, 24, Color(0.75, 0.75, 0.75))
 
 func _draw_bottom_ui():
 	if arcade_font == null:
@@ -356,36 +374,87 @@ func _draw_bottom_ui():
 	var reward_rect := Rect2(REWARD_PANEL_POS, CARD_SIZE)
 	draw_rect(reward_rect, Color(0.08, 0.08, 0.08, 0.85), true)
 	if frame_texture != null:
-		draw_texture_rect(frame_texture, reward_rect, false)
+		var reward_frame_rect := Rect2(reward_rect.position, FRAME_SIZE)
+		draw_texture_rect(frame_texture, reward_frame_rect, false)
 	var reward_text := "Reward %d XP" % int(mission_data.get("intXp", 0))
-	draw_string(arcade_font, reward_rect.position + Vector2(12, 96), reward_text, HORIZONTAL_ALIGNMENT_LEFT, 160, 16, Color.WHITE)
+	reward_text = _break_after_first_word(reward_text)
+	_draw_wrapped_text(arcade_font, _with_text_height(reward_rect.position + Vector2(12, 96), 24), reward_text, 24, 160, Color.WHITE)
 
 	# Chance bar at x=1238,y=761
 	var chance_rect := Rect2(CHANCE_POS, CARD_SIZE)
 	draw_rect(chance_rect, Color(0.08, 0.08, 0.08, 0.85), true)
 	if frame_texture != null:
-		draw_texture_rect(frame_texture, chance_rect, false)
+		var chance_frame_rect := Rect2(chance_rect.position, FRAME_SIZE)
+		draw_texture_rect(frame_texture, chance_frame_rect, false)
 	var fill_width := (CARD_SIZE.x - 20.0) * (current_win_chance / 100.0)
 	draw_rect(Rect2(chance_rect.position + Vector2(10, 82), Vector2(fill_width, 12)), Color(0.2, 0.9, 0.35, 0.95), true)
-	draw_string(arcade_font, chance_rect.position + Vector2(12, 112), "Win %d%%" % int(current_win_chance), HORIZONTAL_ALIGNMENT_LEFT, 150, 16, Color.WHITE)
+	var win_text := _break_after_first_word("Win %d%%" % int(current_win_chance))
+	_draw_wrapped_text(arcade_font, _with_text_height(chance_rect.position + Vector2(12, 112), 24), win_text, 24, 150, Color.WHITE)
 
 	# Start button at x=1563,y=761 (missionStartButton replacement)
 	var button_rect := _get_start_button_rect()
 	var enabled := current_win_chance > 0.0 and not battle_complete
 	var bg := Color(0.12, 0.6, 0.2, 0.95) if enabled else Color(0.2, 0.2, 0.2, 0.8)
 	draw_rect(button_rect, bg, true)
-	draw_rect(button_rect, Color.WHITE, false, 2.0)
-	draw_string(arcade_font, button_rect.position + Vector2(36, 52), "FIGHT", HORIZONTAL_ALIGNMENT_LEFT, 120, 20, Color.WHITE)
+	if frame_texture != null:
+		var button_frame_rect := Rect2(button_rect.position, FRAME_SIZE)
+		draw_texture_rect(frame_texture, button_frame_rect, false)
+	else:
+		draw_rect(button_rect, Color.WHITE, false, 2.0)
+	draw_string(arcade_font, _with_text_height(button_rect.position + Vector2(36, 52), 24), "FIGHT", 0, 120, 24, Color.WHITE)
 
 func _draw_results_overlay():
 	if arcade_font == null:
 		return
 	draw_rect(Rect2(Vector2.ZERO, Vector2(1920, 1080)), Color(0, 0, 0, 0.72), true)
 	var color := Color(0.2, 1.0, 0.2) if battle_won else Color(1.0, 0.25, 0.25)
-	draw_string(arcade_font, Vector2(860, 480), result_text, HORIZONTAL_ALIGNMENT_LEFT, 320, 42, color)
+	var result_wrapped := _break_after_first_word(result_text)
+	_draw_wrapped_text(arcade_font, _with_text_height(Vector2(860, 480), 42), result_wrapped, 42, 320, color)
 	if battle_won:
-		draw_string(arcade_font, Vector2(740, 530), "%d XP EARNED" % int(mission_data.get("intXp", 0)), HORIZONTAL_ALIGNMENT_LEFT, 520, 22, Color.WHITE)
-	draw_string(arcade_font, Vector2(620, 610), "Returning to mission select...", HORIZONTAL_ALIGNMENT_LEFT, 700, 16, Color(0.85, 0.85, 0.85))
+		var earned_text := _break_after_first_word("%d XP EARNED" % int(mission_data.get("intXp", 0)))
+		_draw_wrapped_text(arcade_font, _with_text_height(Vector2(740, 530), 22), earned_text, 22, 520, Color.WHITE)
+	var return_text := _break_after_first_word("Returning to mission select...")
+	_draw_wrapped_text(arcade_font, _with_text_height(Vector2(620, 610), 16), return_text, 16, 700, Color(0.85, 0.85, 0.85))
 
 func _get_start_button_rect() -> Rect2:
 	return Rect2(START_BUTTON_POS, START_BUTTON_SIZE)
+
+func _with_text_height(pos: Vector2, font_size: int) -> Vector2:
+	return pos + Vector2(0, float(font_size))
+
+func _break_after_first_word(text: String) -> String:
+	var split_index := text.find(" ")
+	if split_index == -1:
+		return text
+	return text.substr(0, split_index) + "\n" + text.substr(split_index + 1)
+
+func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, max_width: int, color: Color, outline_color: Color = Color.TRANSPARENT):
+	var normalized_text := text.replace("\n", " \n ")
+	var words := normalized_text.split(" ")
+	var lines := []
+	var current_line := ""
+
+	for word in words:
+		if word == "\n":
+			if current_line.length() > 0:
+				lines.append(current_line)
+				current_line = ""
+			continue
+		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
+		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		if text_size.x > max_width and current_line.length() > 0:
+			lines.append(current_line)
+			current_line = word
+		else:
+			current_line = test_text
+
+	if current_line.length() > 0:
+		lines.append(current_line)
+
+	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
+	var y_offset := 0.0
+	for line in lines:
+		if outline_color.a > 0.0:
+			draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, outline_color)
+		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+		y_offset += line_height
