@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Robot Rumble"
-run/main_scene="uid://c7s6m75xgqsc4"
+run/main_scene="res://features/charge/scenes/charge.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -22,9 +22,9 @@ driver/enable_input=true
 
 [autoload]
 
-Global="*res://scripts/global.gd"
-MusicManager="*res://scripts/music_manager.gd"
-StarfieldManager="*res://scripts/starfield_manager.gd"
+GameState="*res://autoload/state/game_state.gd"
+MusicManager="*res://autoload/audio/music_manager.gd"
+StarfieldManager="*res://autoload/fx/starfield_manager.gd"
 
 [display]
 

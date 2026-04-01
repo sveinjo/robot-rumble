@@ -370,7 +370,7 @@ loop_offset=0
 
 **Spawn Pattern:**
 ```gdscript
-var particle_scene = preload("res://scenes/particle_star1.tscn")
+var particle_scene = preload("res://core/fx/starfield/particle_star1.tscn")
 var particle = particle_scene.instantiate()
 particle.position = Vector2(x, y)
 add_child(particle)
@@ -407,30 +407,30 @@ func _process(_delta):
     rotation_degrees -= 0.2
 ```
 
-### Global Singleton Pattern
+### GameState Singleton Pattern
 
 **Declaration (project.godot):**
 ```ini
 [autoload]
-Global="*res://scripts/global.gd"
+GameState="*res://autoload/state/game_state.gd"
 ```
 
 **Usage:**
 ```gdscript
 # Set global data
-Global.star_speed = 2.0
-Global.arrayMissions[1] = mission_data
+GameState.star_speed = 2.0
+GameState.arrayMissions[1] = mission_data
 
 # Read global data
-var speed = Global.star_speed
-var mission = Global.arrayMissions[1]
+var speed = GameState.star_speed
+var mission = GameState.arrayMissions[1]
 ```
 
-**Global Arrays (1-indexed compatibility):**
+**GameState Arrays (1-indexed compatibility):**
 ```gdscript
 # Initialize with index 0 unused
-Global.arrayMissions.resize(10)  # Indices 1-9 used
-Global.arrayMissions.fill(null)
+GameState.arrayMissions.resize(10)  # Indices 1-9 used
+GameState.arrayMissions.fill(null)
 ```
 
 ### Scene Transition Pattern (Future)
@@ -444,10 +444,10 @@ goToRoom(justShowPanel, roomName);
 **Godot (to implement):**
 ```gdscript
 # Simple transition
-get_tree().change_scene_to_file("res://scenes/room_name.tscn")
+get_tree().change_scene_to_file("res://features/<feature>/scenes/room_name.tscn")
 
 # With fade/animation
-SceneTransition.fade_to_scene("res://scenes/room_name.tscn")
+SceneTransition.fade_to_scene("res://features/<feature>/scenes/room_name.tscn")
 ```
 
 ### Component Reusability Pattern

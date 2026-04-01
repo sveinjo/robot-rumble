@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://bcwgq1xg8v5wa"]
+
+[ext_resource type="Script" uid="uid://hpx1ndgxhxwj" path="res://features/credits/scripts/credit_main.gd" id="1_n6r8a"]
+[ext_resource type="Texture2D" uid="uid://co7pftlr8kscn" path="res://assets/sprites/Flare.png" id="2_marker"]
+[ext_resource type="PackedScene" uid="uid://d1x7y8k2m5n3p" path="res://features/credits/scenes/credit_fade_text.tscn" id="3_credit"]
+[ext_resource type="Script" uid="uid://6q1e88xywj8p" path="res://core/fx/markers/marker.gd" id="3_marker1"]
+[ext_resource type="Script" uid="uid://c4arb21plnkte" path="res://core/fx/markers/marker2.gd" id="4_marker2"]
+[ext_resource type="AudioStream" uid="uid://nyak065ogddc" path="res://assets/sounds/bgmusic.mp3" id="6_bgmusic"]
+
+[node name="Credits" type="Node2D" unique_id=639440031]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2124425266]
+offset = Vector2(960, 540)
+
+[node name="CreditMain" type="Node2D" parent="." unique_id=991764048]
+z_index = 200
+position = Vector2(640, 1388)
+script = ExtResource("1_n6r8a")
+
+[node name="Marker" type="Sprite2D" parent="." unique_id=863817173]
+z_index = 50
+position = Vector2(960, 540)
+texture_filter = 2
+texture = ExtResource("2_marker")
+script = ExtResource("3_marker1")
+
+[node name="Marker2" type="Sprite2D" parent="." unique_id=348191339]
+z_index = 50
+position = Vector2(960, 540)
+texture_filter = 2
+texture = ExtResource("2_marker")
+script = ExtResource("4_marker2")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=510863033]
+stream = ExtResource("6_bgmusic")
+volume_db = -6.0
+autoplay = true
+
+[node name="CreditFadeText1" parent="." unique_id=269237100 instance=ExtResource("3_credit")]
+position = Vector2(640, 564)
+
+[node name="CreditFadeText2" parent="." unique_id=492304326 instance=ExtResource("3_credit")]
+position = Vector2(960, 444)
+
+[node name="CreditFadeText3" parent="." unique_id=301413603 instance=ExtResource("3_credit")]
+position = Vector2(1280, 564)

@@ -96,9 +96,9 @@ Credits (Node2D)
 
 **Preloaded Scenes**:
 ```gdscript
-var particle_star1_scene = preload("res://scenes/particle_star1.tscn")
-var particle_star2_scene = preload("res://scenes/particle_star2.tscn")
-var particle_star3_scene = preload("res://scenes/particle_star3.tscn")
+var particle_star1_scene = preload("res://core/fx/starfield/particle_star1.tscn")
+var particle_star2_scene = preload("res://core/fx/starfield/particle_star2.tscn")
+var particle_star3_scene = preload("res://core/fx/starfield/particle_star3.tscn")
 ```
 
 **_ready()**:
@@ -189,7 +189,7 @@ func _process(_delta):
     rotation_degrees -= 0.2
 ```
 
-### global.gd
+### game_state.gd
 
 **Purpose**: Singleton for global game data (like GameMaker's mainData)
 
@@ -224,15 +224,16 @@ var arcade_font: Font
 ```ini
 [application]
 config/name="Robot Rumble"
-run/main_scene="res://scenes/credits.tscn"
+run/main_scene="res://features/charge/scenes/charge.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 ```
 
 ### Autoloads
 ```ini
 [autoload]
-Global="*res://scripts/global.gd"
-MusicManager="*res://scripts/music_manager.gd"
+GameState="*res://autoload/state/game_state.gd"
+MusicManager="*res://autoload/audio/music_manager.gd"
+StarfieldManager="*res://autoload/fx/starfield_manager.gd"
 ```
 
 ### Display

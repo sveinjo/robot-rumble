@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/fight_room/scripts/fight_room.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/background3.png" id="2_bg"]
+
+[node name="FightRoom" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Background" type="Sprite2D" parent="BackgroundLayer"]
+position = Vector2(960, 540)
+texture = ExtResource("2_bg")
+centered = true
+z_index = -200
