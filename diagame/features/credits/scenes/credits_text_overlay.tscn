@@ -13,11 +13,14 @@ script = ExtResource("1_main")
 [node name="CreditFadeText1" parent="." instance=ExtResource("2_fade")]
 position = Vector2(640, 564)
 credit_text = "Music by\nErlend Hofstad Langseth"
+z_index = 200
 
 [node name="CreditFadeText2" parent="." instance=ExtResource("2_fade")]
 position = Vector2(960, 444)
 credit_text = "Art by\nAndreas Johansen"
+z_index = 200
 
 [node name="CreditFadeText3" parent="." instance=ExtResource("2_fade")]
 position = Vector2(1280, 564)
 credit_text = "Game design by\nSvein-Gunnar Johansen"
+z_index = 200
