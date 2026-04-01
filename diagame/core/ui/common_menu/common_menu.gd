@@ -220,8 +220,8 @@ func _normalize_legacy_scene_path(scene_path: String) -> String:
 		"res://scenes/play_field.tscn": "res://features/play_field/scenes/play_field.tscn",
 		"res://scenes/fight_room.tscn": "res://features/fight_room/scenes/fight_room.tscn",
 		"res://scenes/home_base.tscn": "res://features/home_base/scenes/home_base.tscn",
-		"res://scenes/charge.tscn": "res://features/charge/scenes/charge.tscn",
-		"res://scenes/charge_megacharge1.tscn": "res://features/charge/scenes/charge_megacharge1.tscn",
+		"res://scenes/charge.tscn": "res://features/credits/scenes/charge.tscn",
+		"res://scenes/charge_megacharge1.tscn": "res://features/credits/scenes/charge_megacharge1.tscn",
 		"res://scenes/credits.tscn": "res://features/credits/scenes/credits.tscn",
 		"res://scenes/credits_3d.tscn": "res://features/credits/scenes/credits_3d.tscn",
 		"res://scenes/credit_fade_text.tscn": "res://features/credits/scenes/credit_fade_text.tscn"

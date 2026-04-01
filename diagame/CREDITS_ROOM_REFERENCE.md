@@ -224,7 +224,7 @@ var arcade_font: Font
 ```ini
 [application]
 config/name="Robot Rumble"
-run/main_scene="res://features/charge/scenes/charge.tscn"
+run/main_scene="res://features/credits/scenes/charge.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 ```
 

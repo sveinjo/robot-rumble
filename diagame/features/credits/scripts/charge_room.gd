@@ -8,7 +8,7 @@ const SPAWN_INTERVAL := 5.0 / 60.0
 
 var star_spawn_timer: float = INITIAL_SPAWN_DELAY
 var star_texture: Texture2D = load("res://assets/sprites/Star1c_0.png")
-var charge_star_script: Script = preload("res://features/charge/scripts/charge_star.gd")
+var charge_star_script: Script = preload("res://features/credits/scripts/charge_star.gd")
 
 @onready var star_container: Node2D = $StarContainer
 @onready var center_glow: Sprite2D = $CenterGlow

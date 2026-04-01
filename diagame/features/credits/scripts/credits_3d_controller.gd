@@ -13,8 +13,8 @@ func _ready():
 	var viewport_left = _duplicate_viewport(viewport, "SubViewport_Left")
 
 	_populate_viewport(viewport, "res://features/credits/scenes/credits.tscn")
-	_populate_viewport(viewport_right, "res://features/charge/scenes/charge_megacharge1.tscn")
-	_populate_viewport(viewport_left, "res://features/charge/scenes/charge.tscn")
+	_populate_viewport(viewport_right, "res://features/credits/scenes/charge_megacharge1.tscn")
+	_populate_viewport(viewport_left, "res://features/credits/scenes/charge.tscn")
 
 	_assign_wall_texture(screen_front, viewport)
 	_assign_wall_texture(screen_right, viewport_right)

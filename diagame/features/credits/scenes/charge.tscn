@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://dm0xatk2pjr78"]
+[gd_scene format=3 uid="uid://c7s6m75xgqsc4"]
 
-[ext_resource type="Script" uid="uid://b05e4j3ycgddl" path="res://features/charge/scripts/charge_room.gd" id="1_charge"]
+[ext_resource type="Script" uid="uid://b05e4j3ycgddl" path="res://features/credits/scripts/charge_room.gd" id="1_charge"]
 [ext_resource type="Texture2D" uid="uid://co7pftlr8kscn" path="res://assets/sprites/Flare.png" id="2_flare"]
-[ext_resource type="Texture2D" uid="uid://dx6g3h1jhiagk" path="res://assets/sprites/MegaCharge_1.png" id="3_mega"]
+[ext_resource type="Texture2D" uid="uid://01gnw5uqxtio" path="res://assets/sprites/MegaCharge_0.png" id="3_mega"]
+[ext_resource type="PackedScene" path="res://features/credits/scenes/credits_text_overlay.tscn" id="4_overlay"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_25ywb"]
 
@@ -11,6 +12,8 @@ script = ExtResource("1_charge")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=725561443]
 position = Vector2(960, 540)
+
+[node name="CreditsTextOverlay" parent="." instance=ExtResource("4_overlay")]
 
 [node name="StarContainer" type="Node2D" parent="." unique_id=1233907460]
 z_index = 90
@@ -32,5 +35,6 @@ texture = ExtResource("2_flare")
 [node name="MegaCharge" type="Sprite2D" parent="." unique_id=335206300]
 z_index = 80
 use_parent_material = true
+position = Vector2(640, 256)
 texture = ExtResource("3_mega")
 centered = false

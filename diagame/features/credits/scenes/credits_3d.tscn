@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://credits3d"]
 
 [ext_resource type="Script" uid="uid://vqoqvbe2hqp3" path="res://features/credits/scripts/camera_3d_controller.gd" id="5_camera"]
-[ext_resource type="AudioStream" uid="uid://nyak065ogddc" path="res://assets/sounds/bgmusic.mp3" id="6_bgmusic"]
 [ext_resource type="Script" uid="uid://doh5ip5uktu05" path="res://features/credits/scripts/credits_3d_controller.gd" id="8_controller"]
 
 [sub_resource type="Environment" id="Environment_1"]
@@ -70,9 +69,4 @@ surface_material_override/0 = SubResource("StandardMaterial3D_Flipped")
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19.2)
 mesh = SubResource("QuadMesh_1")
 surface_material_override/0 = SubResource("StandardMaterial3D_Flipped")
-
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=741203742]
-
-
-[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="." unique_id=1161652409]
 
