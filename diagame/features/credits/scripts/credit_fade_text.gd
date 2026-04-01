@@ -1,11 +1,12 @@
 extends Node2D
 
 # Fading text for credits
-var credit_text: String = ""
+@export_multiline var credit_text: String = ""
 var text_alpha: float = 0.0
 var fade_flag: int = 1  # 1 = fading in, 0 = fading out
 var fade_timer: float = 0.0
 var arcade_font: Font
+const CREDITS_FONT_SIZE := 24
 
 func _ready():
 	# Load the arcade font
@@ -39,7 +40,7 @@ func _draw():
 		return
 	
 	var font = arcade_font if arcade_font else ThemeDB.fallback_font
-	var font_size = 18
+	var font_size = CREDITS_FONT_SIZE
 	
 	# Calculate the actual width of the text block
 	var lines = credit_text.split("\n")

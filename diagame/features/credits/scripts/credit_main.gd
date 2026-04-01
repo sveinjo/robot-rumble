@@ -30,6 +30,7 @@ Your stores of food and insulin have been taken, and you must get them back!"""
 
 var scroll_speed: float = 1.0
 var arcade_font: Font
+const CREDITS_FONT_SIZE := 24
 
 func _ready():
 	# Load the arcade font
@@ -61,7 +62,7 @@ func _input(event):
 func _draw():
 	# Draw the story text with a shadow effect, centered horizontally
 	var font = arcade_font if arcade_font else ThemeDB.fallback_font
-	var font_size = 18
+	var font_size = CREDITS_FONT_SIZE
 	var text_width = 640
 	# In GameMaker, text is centered on screen. For 1920px screen, center at 960px
 	# Since text is 640px wide, left edge should be at 960 - 320 = 640

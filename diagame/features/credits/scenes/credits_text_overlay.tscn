@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/credits/scripts/credit_main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://d1x7y8k2m5n3p" path="res://features/credits/scenes/credit_fade_text.tscn" id="2_fade"]
+
+[node name="CreditsTextOverlay" type="Node2D"]
+
+[node name="StoryScroller" type="Node2D" parent="."]
+z_index = 200
+position = Vector2(640, 1388)
+script = ExtResource("1_main")
+
+[node name="CreditFadeText1" parent="." instance=ExtResource("2_fade")]
+position = Vector2(640, 564)
+credit_text = "Music by\nErlend Hofstad Langseth"
+
+[node name="CreditFadeText2" parent="." instance=ExtResource("2_fade")]
+position = Vector2(960, 444)
+credit_text = "Art by\nAndreas Johansen"
+
+[node name="CreditFadeText3" parent="." instance=ExtResource("2_fade")]
+position = Vector2(1280, 564)
+credit_text = "Game design by\nSvein-Gunnar Johansen"
