@@ -72,11 +72,7 @@ mesh = SubResource("QuadMesh_1")
 surface_material_override/0 = SubResource("StandardMaterial3D_Flipped")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=741203742]
-stream = ExtResource("6_bgmusic")
-volume_db = -6.0
-autoplay = true
+
 
 [node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="." unique_id=1161652409]
-stream = ExtResource("6_bgmusic")
-volume_db = -6.0
-autoplay = true
+

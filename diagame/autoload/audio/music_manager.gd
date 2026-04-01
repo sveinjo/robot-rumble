@@ -5,24 +5,30 @@ var music_player: AudioStreamPlayer
 var bgmusic: AudioStream
 
 func _ready():
-	# Create persistent audio player
-	music_player = AudioStreamPlayer.new()
-	add_child(music_player)
-	music_player.bus = "Master"
-	
+	# Create persistent audio player if not present
+	if music_player == null:
+		music_player = AudioStreamPlayer.new()
+		add_child(music_player)
+		music_player.bus = "Master"
+
+	# If music already playing, nothing to do
+	if music_player.playing:
+		return
+
 	# Load and play background music
 	if GameState.play_music:
-		# The music will be loaded when the import system processes it
 		var music_path = "res://assets/sounds/bgmusic.mp3"
 		if ResourceLoader.exists(music_path):
 			bgmusic = load(music_path)
 			if bgmusic:
 				music_player.stream = bgmusic
-				music_player.play()
-				music_player.set_stream_paused(false)
-				# Loop the music
-				if music_player.stream:
-					music_player.finished.connect(_on_music_finished)
+				if not music_player.playing:
+					music_player.play()
+					music_player.set_stream_paused(false)
+				# Ensure finished handler only connected once
+				var finished_cb = Callable(self, "_on_music_finished")
+				if not music_player.is_connected("finished", finished_cb):
+					music_player.finished.connect(finished_cb)
 
 func _on_music_finished():
 	# Restart music when it finishes

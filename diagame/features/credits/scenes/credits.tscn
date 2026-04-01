@@ -32,9 +32,7 @@ texture = ExtResource("2_marker")
 script = ExtResource("4_marker2")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=510863033]
-stream = ExtResource("6_bgmusic")
-volume_db = -6.0
-autoplay = true
+
 
 [node name="CreditFadeText1" parent="." unique_id=269237100 instance=ExtResource("3_credit")]
 position = Vector2(640, 564)
