@@ -108,6 +108,28 @@ Fixes applied:
 - Frame-rate-independent spawn catch-up and movement scaling.
 - Explicit float typing in starfield manager to satisfy warnings-as-errors parse rules.
 
+## Framerate Configuration
+
+Framerate controls are centralized in `autoload/state/game_state.gd` and applied at startup.
+
+- `fps_cap`:
+  - `0` = uncapped
+  - `> 0` = max render FPS cap
+- `physics_tick_rate`: fixed simulation tick rate (`Engine.physics_ticks_per_second`)
+- `vsync_enabled`: toggles VSync (`DisplayServer.window_set_vsync_mode`)
+
+Default values currently used:
+
+- `fps_cap = 120`
+- `physics_tick_rate = 60`
+- `vsync_enabled = false`
+
+Runtime helper methods are also available on `GameState`:
+
+- `set_fps_cap(cap: int)`
+- `set_physics_tick_rate(rate: int)`
+- `set_vsync_enabled(enabled: bool)`
+
 ## Run and Validate
 
 1. Open `diagame/project.godot` in Godot 4.6.x.

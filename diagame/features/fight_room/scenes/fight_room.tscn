@@ -1,16 +1,15 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://dvndt0l4ot4ci"]
 
-[ext_resource type="Script" path="res://features/fight_room/scripts/fight_room.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/background3.png" id="2_bg"]
+[ext_resource type="Script" uid="uid://mw7ycoxwurly" path="res://features/fight_room/scripts/fight_room.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cv8xpco132u54" path="res://assets/sprites/background3.png" id="2_bg"]
 
-[node name="FightRoom" type="Node2D"]
+[node name="FightRoom" type="Node2D" unique_id=2123481112]
 script = ExtResource("1_script")
 
-[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1559747557]
 layer = -10
 
-[node name="Background" type="Sprite2D" parent="BackgroundLayer"]
+[node name="Background" type="Sprite2D" parent="BackgroundLayer" unique_id=1228113548]
+z_index = -200
 position = Vector2(960, 540)
 texture = ExtResource("2_bg")
-centered = true
-z_index = -200

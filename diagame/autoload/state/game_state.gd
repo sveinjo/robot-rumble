@@ -32,6 +32,12 @@ var speechBubbles: bool = true
 var arcade_font: Font
 var common_menu: CanvasLayer
 
+# Runtime performance controls.
+# fps_cap: 0 = uncapped, otherwise target max render FPS.
+var fps_cap: int = 0
+var physics_tick_rate: int = 120
+var vsync_enabled: bool = true
+
 func _ready():
 	# Set initial window mode to windowed
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
@@ -41,9 +47,27 @@ func _ready():
 
 	# Initialize arrays
 	initialize_game_data()
+	_apply_runtime_performance_settings()
 
 	# Install shared menu overlay used across all rooms.
 	call_deferred("_install_common_menu")
+
+func _apply_runtime_performance_settings() -> void:
+	set_fps_cap(fps_cap)
+	set_physics_tick_rate(physics_tick_rate)
+	set_vsync_enabled(vsync_enabled)
+
+func set_fps_cap(cap: int) -> void:
+	fps_cap = maxi(0, cap)
+	Engine.max_fps = fps_cap
+
+func set_physics_tick_rate(rate: int) -> void:
+	physics_tick_rate = maxi(1, rate)
+	Engine.physics_ticks_per_second = physics_tick_rate
+
+func set_vsync_enabled(enabled: bool) -> void:
+	vsync_enabled = enabled
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED)
 
 func _install_common_menu():
 	if common_menu != null:

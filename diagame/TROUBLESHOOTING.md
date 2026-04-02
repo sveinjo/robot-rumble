@@ -12,6 +12,8 @@ Quick index for common Godot-port issues in this repository.
   - See [3) Export vs Editor Starfield Mismatch](#3-export-vs-editor-starfield-mismatch)
 - Warning on load: `ext_resource, invalid UID` in star particle scenes
   - See [4) Invalid Resource UID Warnings](#4-invalid-resource-uid-warnings)
+- High CPU/GPU usage when idle or unlimited render speed
+  - See [5) FPS Cap and Frame Pacing](#5-fps-cap-and-frame-pacing)
 
 ## 1) Indentation and Loop Scope Errors
 
@@ -117,3 +119,35 @@ Use Godot headless parse to catch script errors quickly:
 ```
 
 If parse errors are gone but runtime behavior still differs in export, compare fight-room star debug counters between editor and export builds.
+
+## 5) FPS Cap and Frame Pacing
+
+### Symptom
+
+- Game uses more system resources than needed.
+- Framerate runs much higher than intended.
+- You want to keep simulation stable while allowing higher/lower render FPS.
+
+### Configuration location
+
+- `autoload/state/game_state.gd`
+
+### Variables
+
+- `fps_cap`:
+  - `0` = uncapped
+  - `> 0` = capped by `Engine.max_fps`
+- `physics_tick_rate`: applies to `Engine.physics_ticks_per_second`
+- `vsync_enabled`: controls `DisplayServer.window_set_vsync_mode`
+
+### Runtime setters
+
+- `GameState.set_fps_cap(cap)`
+- `GameState.set_physics_tick_rate(rate)`
+- `GameState.set_vsync_enabled(enabled)`
+
+### Recommended baseline
+
+- Keep `physics_tick_rate` at `60` for gameplay consistency.
+- Use `fps_cap` around `120` on desktop for smooth rendering without maxing hardware.
+- Use `vsync_enabled = true` if tearing is visible; `false` for lower-latency uncapped/capped behavior.
