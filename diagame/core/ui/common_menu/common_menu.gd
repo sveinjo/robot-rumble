@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const PANEL_WIDTH := 760.0
+const DEFAULT_PANEL_WIDTH := 732.0
 const PANEL_ACCELERATION := 4.0
 const PANEL_MAX_HIDE_SPEED := 50.0
 const MENU_BUTTON_SIZE := Vector2(244, 54)
@@ -12,6 +12,7 @@ var panel_open: bool = false
 var panel_velocity: float = 0.0
 var panel_step_accumulator: float = 0.0
 var status_timer: float = 0.0
+var panel_width: float = DEFAULT_PANEL_WIDTH
 
 var root_control: Control
 var menu_button: TextureButton
@@ -23,6 +24,13 @@ var btn_start: TextureButton
 var btn_load: TextureButton
 var btn_save: TextureButton
 var btn_exit: TextureButton
+var btn_fps: TextureButton
+var btn_tick: TextureButton
+var btn_vsync: TextureButton
+
+var lbl_fps: Label
+var lbl_tick: Label
+var lbl_vsync: Label
 
 var menu_bar_texture: Texture2D
 var menu_back_texture: Texture2D
@@ -35,6 +43,7 @@ func _ready():
 	menu_back_texture = load("res://assets/sprites/MenuBack_0.png")
 	empty_texture = load("res://assets/sprites/Empty_0.png")
 	arcade_font = GameState.arcade_font if GameState.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
+	panel_width = float(menu_back_texture.get_width()) if menu_back_texture != null else DEFAULT_PANEL_WIDTH
 
 	root_control = Control.new()
 	root_control.name = "Root"
@@ -43,8 +52,8 @@ func _ready():
 
 	panel = Control.new()
 	panel.name = "MenuPanel"
-	panel.position = Vector2(-PANEL_WIDTH, 0)
-	panel.size = Vector2(PANEL_WIDTH, get_viewport().get_visible_rect().size.y)
+	panel.position = Vector2(-panel_width, 0)
+	panel.size = Vector2(panel_width, get_viewport().get_visible_rect().size.y)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	root_control.add_child(panel)
 
@@ -70,31 +79,50 @@ func _ready():
 	menu_button.pressed.connect(_on_menu_pressed)
 	root_control.add_child(menu_button)
 
-	menu_button_label = _create_label("MENU", Vector2(16, 16), 24)
+	menu_button_label = _create_button_label("MENU", 24, MENU_BUTTON_SIZE)
 	menu_button.add_child(menu_button_label)
 
-	status_label = _create_label("", Vector2(262, 16), 18)
+	status_label = _create_label("", Vector2(MENU_BUTTON_SIZE.x + 18.0, 16), 18)
 	status_label.visible = false
-	status_label.size = Vector2(760, 56)
+	status_label.size = Vector2(panel_width, 56)
 	status_label.z_index = 20
 	root_control.add_child(status_label)
 
-	btn_start = _create_action_button("BACK TO TITLE", Vector2(278, 143), _on_start_pressed)
-	btn_load = _create_action_button("LOAD GAME", Vector2(102, 452), _on_load_pressed)
-	btn_save = _create_action_button("SAVE GAME", Vector2(454, 452), _on_save_pressed)
-	btn_exit = _create_action_button("EXIT GAME", Vector2(278, 761), _on_exit_pressed)
+	var side_x := 102.0
+	var right_x := panel_width - side_x - ACTION_BUTTON_SIZE.x
+
+	# Keep top and bottom rows symmetric inside the textured panel.
+	btn_start = _create_action_button("BACK TO TITLE", Vector2(side_x, 143), _on_start_pressed)
+	btn_load = _create_action_button("LOAD GAME", Vector2(side_x, 761), _on_load_pressed)
+	btn_save = _create_action_button("SAVE GAME", Vector2(right_x, 761), _on_save_pressed)
+	btn_exit = _create_action_button("EXIT GAME", Vector2(right_x, 143), _on_exit_pressed)
+
+	# Middle row uses equal spacing between panel edges and each button.
+	var perf_gap := (panel_width - (ACTION_BUTTON_SIZE.x * 3.0)) / 4.0
+	btn_fps = _create_action_button("", Vector2(perf_gap, 452), _on_fps_pressed)
+	btn_tick = _create_action_button("", Vector2((perf_gap * 2.0) + ACTION_BUTTON_SIZE.x, 452), _on_tick_pressed)
+	btn_vsync = _create_action_button("", Vector2((perf_gap * 3.0) + (ACTION_BUTTON_SIZE.x * 2.0), 452), _on_vsync_pressed)
+
+	lbl_fps = btn_fps.get_child(0) as Label
+	lbl_tick = btn_tick.get_child(0) as Label
+	lbl_vsync = btn_vsync.get_child(0) as Label
 
 	panel.add_child(btn_start)
 	panel.add_child(btn_load)
 	panel.add_child(btn_save)
 	panel.add_child(btn_exit)
+	panel.add_child(btn_fps)
+	panel.add_child(btn_tick)
+	panel.add_child(btn_vsync)
+
+	_refresh_performance_buttons()
 
 func _process(delta: float):
 	var vp_size: Vector2 = get_viewport().get_visible_rect().size
 	root_control.size = vp_size
 	panel.size.y = vp_size.y
-	panel_back.size = Vector2(760, panel.size.y)
-	panel.visible = panel_open or panel.position.x > -PANEL_WIDTH + 1.0
+	panel_back.size = Vector2(panel_width, panel.size.y)
+	panel.visible = panel_open or panel.position.x > -panel_width + 1.0
 	status_label.visible = status_timer > 0.0
 	if status_timer > 0.0:
 		status_timer = maxf(0.0, status_timer - delta)
@@ -122,8 +150,8 @@ func _simulate_panel_step():
 	if panel_velocity > -PANEL_MAX_HIDE_SPEED:
 		panel_velocity -= PANEL_ACCELERATION
 	panel.position.x += panel_velocity
-	if panel.position.x <= -PANEL_WIDTH:
-		panel.position.x = -PANEL_WIDTH
+	if panel.position.x <= -panel_width:
+		panel.position.x = -panel_width
 		panel_velocity = 0.0
 
 func _create_action_button(label: String, pos: Vector2, action: Callable) -> TextureButton:
@@ -137,11 +165,16 @@ func _create_action_button(label: String, pos: Vector2, action: Callable) -> Tex
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.pressed.connect(action)
 
-	var l := _create_label(_stack_words(label), Vector2(16, 8), 24)
-	l.size = ACTION_BUTTON_SIZE
-	l.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	var l := _create_button_label(_stack_words(label), 24, ACTION_BUTTON_SIZE)
 	b.add_child(l)
 	return b
+
+func _create_button_label(text: String, font_size: int, size: Vector2) -> Label:
+	var lbl := _create_label(text, Vector2.ZERO, font_size)
+	lbl.size = size
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return lbl
 
 func _create_label(text: String, pos: Vector2, font_size: int) -> Label:
 	var lbl := Label.new()
@@ -188,6 +221,43 @@ func _on_save_pressed():
 
 func _on_exit_pressed():
 	get_tree().quit()
+
+func _on_fps_pressed():
+	var caps := PackedInt32Array([0, 60, 120, 144, 240])
+	var current: int = int(GameState.fps_cap)
+	var idx: int = caps.find(current)
+	if idx < 0:
+		idx = 0
+	else:
+		idx = (idx + 1) % caps.size()
+	GameState.set_fps_cap(caps[idx])
+	_refresh_performance_buttons()
+	_set_status("FPS CAP: %s" % ("OFF" if GameState.fps_cap == 0 else str(GameState.fps_cap)), Color(0.85, 0.95, 1.0))
+
+func _on_tick_pressed():
+	var rates := PackedInt32Array([30, 60, 120])
+	var current: int = int(GameState.physics_tick_rate)
+	var idx: int = rates.find(current)
+	if idx < 0:
+		idx = 0
+	else:
+		idx = (idx + 1) % rates.size()
+	GameState.set_physics_tick_rate(rates[idx])
+	_refresh_performance_buttons()
+	_set_status("PHYS TICK: %d" % GameState.physics_tick_rate, Color(0.85, 0.95, 1.0))
+
+func _on_vsync_pressed():
+	GameState.set_vsync_enabled(not GameState.vsync_enabled)
+	_refresh_performance_buttons()
+	_set_status("VSYNC: %s" % ("ON" if GameState.vsync_enabled else "OFF"), Color(0.85, 0.95, 1.0))
+
+func _refresh_performance_buttons():
+	if lbl_fps != null:
+		lbl_fps.text = "FPS\nCAP\n%s" % ("OFF" if GameState.fps_cap == 0 else str(GameState.fps_cap))
+	if lbl_tick != null:
+		lbl_tick.text = "PHYS\nTICK\n%d" % GameState.physics_tick_rate
+	if lbl_vsync != null:
+		lbl_vsync.text = "VSYNC\n%s" % ("ON" if GameState.vsync_enabled else "OFF")
 
 func _set_status(text: String, color: Color):
 	if status_label == null:
