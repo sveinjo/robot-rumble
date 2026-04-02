@@ -18,7 +18,7 @@ const CHAIN_DELAY := 60.0 / 60.0
 const GROUP_FADE_DELAY := 20.0 / 60.0
 const VICTORY_POST_DELAY := 60.0 / 60.0
 
-@export var show_star_debug_counts: bool = false
+@export var show_star_debug_counts: bool = true
 
 var arcade_font: Font
 var flare_texture: Texture2D
@@ -67,8 +67,8 @@ func _ready():
 	GameState.set_starfield_spawn_interval(1.0 / 60.0)
 	_update_layout_to_viewport()
 
-	# Match GM flow: determine win/loss right after entering fight room.
-	var roll := randi_range(0, 100)
+	# Match GM flow: determine win/loss right after entering fight room.    
+	var roll: int = randi_range(0, 100)
 	win_flag = roll <= int(round(GameState.intBattleWinChance))
 	GameState.winFlag = 1 if win_flag else 0
 
@@ -91,7 +91,7 @@ func _load_mission_state():
 		var slot: Variant = GameState.arrayEngageSlots[i]
 		if slot == null:
 			continue
-		var hero_id := int(slot)
+		var hero_id: int = int(slot)
 		if hero_id > 0:
 			selected_heroes.append(hero_id)
 
@@ -113,7 +113,7 @@ func _load_mission_state():
 		for v in raw_enemies:
 			if v == null:
 				continue
-			var eid := int(v)
+			var eid: int = int(v)
 			if eid > 0:
 				mission_enemies.append(eid)
 			if mission_enemies.size() == 3:
@@ -126,7 +126,7 @@ func _build_fighter_lines():
 	right_fighters.clear()
 
 	for i in range(selected_heroes.size()):
-		var hero_id := selected_heroes[i]
+		var hero_id: int = selected_heroes[i]
 		var raw_hero: Variant = GameState.arrayHeroes[hero_id]
 		if raw_hero == null:
 			continue
@@ -149,7 +149,7 @@ func _build_fighter_lines():
 		})
 
 	for i in range(3):
-		var enemy_id := mission_enemies[i]
+		var enemy_id: int = mission_enemies[i]
 		var raw_enemy: Variant = GameState.arrayEnemies[enemy_id]
 		if raw_enemy == null:
 			continue
@@ -191,7 +191,7 @@ func _update_hover_state():
 	hovered_return_button = false
 	if not return_visible:
 		return
-	var local_mouse := to_local(get_viewport().get_mouse_position())
+	var local_mouse: Vector2 = to_local(get_viewport().get_mouse_position())        
 	hovered_return_button = _get_return_button_rect().has_point(local_mouse)
 
 func _update_starfield_state(_delta: float):
@@ -202,7 +202,7 @@ func _update_starfield_state(_delta: float):
 
 func _update_fighter_motion(delta: float):
 	motion_step_accumulator += delta * 60.0
-	var steps_to_run := mini(int(motion_step_accumulator), 8)
+	var steps_to_run: int = mini(int(motion_step_accumulator), 8)
 	if steps_to_run <= 0:
 		return
 	motion_step_accumulator -= float(steps_to_run)
@@ -403,16 +403,16 @@ func _apply_level_up_rewards():
 		var hero_slot: Variant = GameState.arrayEngageSlots[i]
 		if hero_slot == null:
 			continue
-		var hero_id := int(hero_slot)
+		var hero_id: int = int(hero_slot)
 		if hero_id <= 0:
 			continue
 		var raw_hero: Variant = GameState.arrayHeroes[hero_id]
 		if raw_hero == null:
 			continue
 		var hero: Dictionary = raw_hero
-		var new_xp := int(hero.get("intXp", 0)) + xp_reward
+		var new_xp: int = int(hero.get("intXp", 0)) + xp_reward
 		hero["intXp"] = new_xp
-		var level := int(hero.get("intLevel", 1))
+		var level: int = int(hero.get("intLevel", 1))
 		if level + 1 < GameState.arrayLevels.size() and new_xp >= int(GameState.arrayLevels[level + 1]):
 			hero["intLevel"] = level + 1
 		GameState.arrayHeroes[hero_id] = hero
@@ -460,7 +460,7 @@ func _draw_lines():
 		var f: Dictionary = left_fighters[i]
 		if not bool(f.get("visible", true)):
 			continue
-		var rect := Rect2(Vector2(f["pos"]) - CARD_SIZE * 0.5, CARD_SIZE)
+		var rect: Rect2 = Rect2(Vector2(f["pos"]) - CARD_SIZE * 0.5, CARD_SIZE)
 		var tex: Texture2D = f.get("tex", null)
 		if tex != null:
 			draw_texture_rect(tex, rect, false, Color(1, 1, 1, float(f.get("alpha", 1.0))))
@@ -468,8 +468,8 @@ func _draw_lines():
 			draw_rect(rect, Color(0.3, 0.3, 0.3, float(f.get("alpha", 1.0))), true)
 
 		if reward_visible:
-			var reward_anchor := Vector2(LEFT_X[i + 1] + COMBAT_CENTER_SHIFT - (CARD_SIZE.x * 0.5), REWARD_Y)
-			var reward_text := "%d XP" % xp_reward
+			var reward_anchor: Vector2 = Vector2(LEFT_X[i + 1] + COMBAT_CENTER_SHIFT - (CARD_SIZE.x * 0.5), REWARD_Y)
+			var reward_text: String = "%d XP" % xp_reward
 			draw_string(arcade_font, reward_anchor + Vector2(13, 37), reward_text, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color(0, 0, 1))
 			draw_string(arcade_font, reward_anchor + Vector2(10, 34), reward_text, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.WHITE)
 
@@ -477,7 +477,7 @@ func _draw_lines():
 		var e: Dictionary = right_fighters[i2]
 		if not bool(e.get("visible", true)):
 			continue
-		var rect2 := Rect2(Vector2(e["pos"]) - CARD_SIZE * 0.5, CARD_SIZE)
+		var rect2: Rect2 = Rect2(Vector2(e["pos"]) - CARD_SIZE * 0.5, CARD_SIZE)
 		var tex2: Texture2D = e.get("tex", null)
 		if tex2 != null:
 			draw_texture_rect(tex2, rect2, false, Color(1, 1, 1, float(e.get("alpha", 1.0))))
@@ -487,8 +487,8 @@ func _draw_lines():
 func _draw_return_button():
 	if arcade_font == null:
 		return
-	var r := _get_return_button_rect()
-	var tint := Color(1, 1, 1, 1.0 if return_visible else 0.65)
+	var r: Rect2 = _get_return_button_rect()
+	var tint: Color = Color(1, 1, 1, 1.0 if return_visible else 0.65)
 	if hovered_return_button:
 		draw_rect(r.grow(3), Color(0.4, 0.7, 1.0, 0.9), false, 2.0)
 	if next_button_texture != null:
@@ -503,8 +503,8 @@ func _draw_result_banner():
 	if not battle_finished:
 		_draw_centered_shadowed_text("RESOLVING...", Vector2(TEXT_CENTER_X, BANNER_Y), 24, Color.WHITE)
 		return
-	var result_txt := "VICTORY" if win_flag else "DEFEAT"
-	var c := Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
+	var result_txt: String = "VICTORY" if win_flag else "DEFEAT"
+	var c: Color = Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
 	_draw_centered_shadowed_text(result_txt, Vector2(TEXT_CENTER_X, BANNER_Y), 24, c)
 
 func _get_return_button_rect() -> Rect2:
@@ -540,6 +540,6 @@ func _draw_star_debug_counts():
 
 func _draw_centered_shadowed_text(text: String, top_left_center_anchor: Vector2, font_size: int, color: Color):
 	var text_size: Vector2 = arcade_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-	var base_pos := top_left_center_anchor + Vector2(-text_size.x * 0.5, float(font_size))
+	var base_pos: Vector2 = top_left_center_anchor + Vector2(-text_size.x * 0.5, float(font_size))
 	draw_string(arcade_font, base_pos + Vector2(3, 3), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(0.0, 0.0, 1.0))
 	draw_string(arcade_font, base_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)

@@ -9,6 +9,7 @@ var spawn_timer: float = DEFAULT_SPAWN_INTERVAL
 var particle_star1_scene = preload("res://core/fx/starfield/particle_star1.tscn")
 var particle_star2_scene = preload("res://core/fx/starfield/particle_star2.tscn")
 var particle_star3_scene = preload("res://core/fx/starfield/particle_star3.tscn")
+var rng := RandomNumberGenerator.new()
 
 var container: Node2D
 var debug_sample_timer: float = 0.0
@@ -21,6 +22,7 @@ var last_star_counts: Dictionary = {
 
 func _ready():
 	layer = -1
+	rng.randomize()
 	container = Node2D.new()
 	container.name = "StarContainer"
 	add_child(container)
@@ -38,23 +40,28 @@ func _process(delta: float):
 	spawn_timer -= delta
 	if spawn_timer > 0.0:
 		return
-	_create_star_particle()
-	spawn_timer = max(0.01, spawn_interval)
+
+	var safe_interval: float = maxf(0.01, spawn_interval)
+	while spawn_timer <= 0.0:
+		_create_star_particle()
+		spawn_timer += safe_interval
 
 func _create_star_particle():
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var star_line := randf() * viewport_size.y
-	var star_type := randf() * 3.0
+	var star_line := rng.randf() * viewport_size.y
+	var star_type := rng.randi_range(0, 2)
 	var particle_scene: PackedScene
 
-	if star_type > 2.0:
+	if star_type == 2:
 		particle_scene = particle_star3_scene
-	elif star_type > 1.0:
+	elif star_type == 1:
 		particle_scene = particle_star2_scene
 	else:
 		particle_scene = particle_star1_scene
 
 	var particle: Node2D = particle_scene.instantiate()
+	if particle.has_method("apply_star_variant"):
+		particle.call("apply_star_variant", star_type)
 	particle.position = Vector2(viewport_size.x, star_line)
 	container.add_child(particle)
 
@@ -62,7 +69,7 @@ func set_enabled(value: bool):
 	enabled = value
 
 func set_spawn_interval(value: float):
-	spawn_interval = max(0.01, value)
+	spawn_interval = maxf(0.01, value)
 
 func clear_particles():
 	for child in container.get_children():
