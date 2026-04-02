@@ -31,6 +31,7 @@ Your stores of food and insulin have been taken, and you must get them back!"""
 var scroll_speed: float = 1.0
 var arcade_font: Font
 const CREDITS_FONT_SIZE := 24
+const BASE_FPS := 60.0
 
 func _ready():
 	# Load the arcade font
@@ -45,9 +46,9 @@ func _ready():
 	
 	# Shared persistent starfield now handled by StarfieldManager autoload.
 
-func _process(_delta):
+func _process(delta: float):
 	# Scroll upward (y decreases)
-	position.y -= scroll_speed
+	position.y -= scroll_speed * delta * BASE_FPS
 	
 	# Loop when we've scrolled too far up
 	if position.y <= -1088:

@@ -34,8 +34,8 @@ var common_menu: CanvasLayer
 
 # Runtime performance controls.
 # fps_cap: 0 = uncapped, otherwise target max render FPS.
-var fps_cap: int = 0
-var physics_tick_rate: int = 120
+var fps_cap: int = 60
+var physics_tick_rate: int = 60
 var vsync_enabled: bool = true
 
 func _ready():

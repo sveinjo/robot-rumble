@@ -223,7 +223,7 @@ func _on_exit_pressed():
 	get_tree().quit()
 
 func _on_fps_pressed():
-	var caps := PackedInt32Array([0, 60, 120, 144, 240])
+	var caps := PackedInt32Array([0, 30, 60, 120, 144, 240])
 	var current: int = int(GameState.fps_cap)
 	var idx: int = caps.find(current)
 	if idx < 0:
