@@ -22,12 +22,14 @@ const SPREAD_MIN := -260.0
 const SPREAD_MAX := 260.0
 const HOLD_ZOOM_SPEED := 0.9
 const HOLD_SPREAD_SPEED := 240.0
+const HOLD_VERTICAL_SPEED := 220.0
 
 var camera_yaw: float = 0.0
 var camera_drag_active: bool = false
 
 @export var dramatic_zoom: float = 1.35
 @export var horizontal_spread: float = 0.0
+@export var vertical_spread: float = 0.0
 @export var show_perspective_debug: bool = true
 
 func _ready():
@@ -37,6 +39,7 @@ func _ready():
 	action_timer = START_DELAY
 	dramatic_zoom = clamp(dramatic_zoom, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
 	horizontal_spread = clamp(horizontal_spread, SPREAD_MIN, SPREAD_MAX)
+	vertical_spread = clamp(vertical_spread, SPREAD_MIN, SPREAD_MAX)
 
 func _process(delta: float):
 	super._process(delta)
@@ -59,6 +62,14 @@ func _update_runtime_tuning(delta: float):
 		spread_dir -= 1.0
 	if not is_zero_approx(spread_dir):
 		horizontal_spread = clamp(horizontal_spread + spread_dir * HOLD_SPREAD_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
+
+	var vertical_dir := 0.0
+	if Input.is_key_pressed(KEY_UP):
+		vertical_dir += 1.0
+	if Input.is_key_pressed(KEY_DOWN):
+		vertical_dir -= 1.0
+	if not is_zero_approx(vertical_dir):
+		vertical_spread = clamp(vertical_spread + vertical_dir * HOLD_VERTICAL_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
 
 func _build_fighter_lines():
 	left_fighters.clear()
@@ -278,8 +289,10 @@ func _draw_star_debug_counts():
 		return
 	var zoom_info: String = "Perspective Zoom: %.2f (hold PageUp/PageDown)" % dramatic_zoom
 	var spread_info: String = "Horizontal Spread: %.1f (hold Left/Right)" % horizontal_spread
+	var vertical_info: String = "Vertical Spread: %.1f (hold Up/Down)" % vertical_spread
 	draw_string(arcade_font, Vector2(32, 126), zoom_info, HORIZONTAL_ALIGNMENT_LEFT, 980, 16, Color(1.0, 0.9, 0.45, 0.95))
 	draw_string(arcade_font, Vector2(32, 146), spread_info, HORIZONTAL_ALIGNMENT_LEFT, 980, 16, Color(1.0, 0.9, 0.45, 0.95))
+	draw_string(arcade_font, Vector2(32, 166), vertical_info, HORIZONTAL_ALIGNMENT_LEFT, 980, 16, Color(1.0, 0.9, 0.45, 0.95))
 
 func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2:
 	var centered_x: float = source.x - CAMERA_CENTER_X
@@ -292,6 +305,7 @@ func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2
 	elif source.x > CAMERA_CENTER_X:
 		side_sign = 1.0
 
-	var projected_x: float = CAMERA_CENTER_X + centered_x + swing + (horizontal_spread * side_sign)
-	var projected_y: float = source.y + absf(centered_x) * absf(camera_yaw) * 0.02
+	# Perspective-aware adjustment: near cards (higher depth_weight) shift more than far cards.
+	var projected_x: float = CAMERA_CENTER_X + centered_x + swing + (horizontal_spread * side_sign * depth_weight)
+	var projected_y: float = source.y + absf(centered_x) * absf(camera_yaw) * 0.02 - (vertical_spread * depth_weight)
 	return Vector2(projected_x, projected_y)
