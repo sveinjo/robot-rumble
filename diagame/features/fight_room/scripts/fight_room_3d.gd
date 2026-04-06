@@ -4,7 +4,7 @@ const SIDE_COLUMNS := 2
 const ROWS_PER_COLUMN := 3
 const LEFT_COLUMN_X_SCREEN: Array[float] = [320.0, 560.0]
 const RIGHT_COLUMN_X_SCREEN: Array[float] = [1600.0, 1360.0]
-const ROW_Y_SCREEN: Array[float] = [591.0, 516.0, 441.0]
+const ROW_Y_SCREEN: Array[float] = [635.0, 560.0, 485.0]
 const ROW_X_TO_CENTER_SHIFT_SCREEN: Array[float] = [55.0, 55.0, 55.0]
 const ROW_Z: Array[float] = [0.0, -0.35, -0.7]
 const ROW_SCALE: Array[float] = [1.0, 1.0, 1.0]
@@ -33,9 +33,9 @@ const VICTORY_POST_DELAY := 60.0 / 60.0
 const HOLD_ZOOM_SPEED := 0.45
 const HOLD_SPREAD_SPEED := 36.0
 const HOLD_VERTICAL_SPEED := 120.0
-const DEFAULT_DRAMATIC_ZOOM := 3.5
-const DEFAULT_HORIZONTAL_SPREAD := -170.0
-const DEFAULT_VERTICAL_SPREAD := 500.0
+const DEFAULT_DRAMATIC_ZOOM := 3.4
+const DEFAULT_HORIZONTAL_SPREAD := -182.0
+const DEFAULT_VERTICAL_SPREAD := 270.0
 
 @export var dramatic_zoom: float = 1.35
 @export var horizontal_spread: float = 0.0
@@ -90,6 +90,10 @@ var camera_drag_active: bool = false
 func _ready():
 	randomize()
 	GameState.ensure_ported_data()
+	var viewport := get_viewport()
+	if viewport != null:
+		viewport.msaa_3d = Viewport.MSAA_4X
+		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	dramatic_zoom = DEFAULT_DRAMATIC_ZOOM
 	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
 	vertical_spread = DEFAULT_VERTICAL_SPREAD
@@ -250,7 +254,7 @@ func _build_fighter_lines():
 			continue
 		var hero: Dictionary = raw_hero
 		if not hero_textures.has(hero_id):
-			hero_textures[hero_id] = load(str(hero.get("texture_path", "")))
+			hero_textures[hero_id] = _load_card_texture(str(hero.get("texture_path", "")))
 
 		for col in range(SIDE_COLUMNS):
 			var base := _make_base_position(true, col, row)
@@ -283,7 +287,7 @@ func _build_fighter_lines():
 			continue
 		var enemy: Dictionary = raw_enemy
 		if not enemy_textures.has(enemy_id):
-			enemy_textures[enemy_id] = load(str(enemy.get("texture_path", "")))
+			enemy_textures[enemy_id] = _load_card_texture(str(enemy.get("texture_path", "")))
 
 		for col in range(SIDE_COLUMNS):
 			var base := _make_base_position(false, col, row)
@@ -331,6 +335,7 @@ func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_BACK
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.albedo_texture = texture
 	return material
 
@@ -347,6 +352,40 @@ func _enemy_for_row(row: int) -> int:
 	if row < mission_enemies.size():
 		return int(mission_enemies[row])
 	return int(mission_enemies[mission_enemies.size() - 1])
+
+func _load_card_texture(texture_path: String) -> Texture2D:
+	if texture_path.is_empty():
+		return null
+
+	var hq_path := _resolve_hq_texture_path(texture_path)
+	if not hq_path.is_empty() and ResourceLoader.exists(hq_path):
+		return load(hq_path)
+
+	if ResourceLoader.exists(texture_path):
+		return load(texture_path)
+
+	return null
+
+func _resolve_hq_texture_path(texture_path: String) -> String:
+	if texture_path.is_empty():
+		return ""
+
+	var file_name: String = texture_path.get_file()
+	var base_name: String = file_name.get_basename().to_lower()
+	if base_name.ends_with("_0"):
+		base_name = base_name.substr(0, base_name.length() - 2)
+
+	var candidates: Array[String] = [
+		"res://assets/sprites/HQ/%s.%s" % [base_name, file_name.get_extension().to_lower()],
+		"res://assets/sprites/HQ/%s.png" % base_name,
+		"res://assets/sprites/HQ/%s.jpg" % base_name,
+	]
+
+	for candidate in candidates:
+		if ResourceLoader.exists(candidate):
+			return candidate
+
+	return ""
 
 func _process(delta: float):
 	_update_runtime_tuning(delta)
