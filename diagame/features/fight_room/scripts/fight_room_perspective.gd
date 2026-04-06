@@ -1,9 +1,10 @@
 extends "res://features/fight_room/scripts/fight_room.gd"
 
-const LEFT_PERSPECTIVE_X: Array[float] = [720.0, 560.0, 420.0]
-const RIGHT_PERSPECTIVE_X: Array[float] = [1200.0, 1360.0, 1500.0]
-const PERSPECTIVE_Y: Array[float] = [620.0, 540.0, 470.0]
+const LEFT_PERSPECTIVE_X: Array[float] = [300.0, 470.0, 640.0]
+const RIGHT_PERSPECTIVE_X: Array[float] = [1620.0, 1450.0, 1280.0]
+const PERSPECTIVE_Y: Array[float] = [650.0, 545.0, 455.0]
 const PERSPECTIVE_SCALE: Array[float] = [1.0, 0.86, 0.74]
+const CARD_DRAMA_ZOOM := 1.22
 const REWARD_Y_OFFSET := 84.0
 const REWARD_X_OFFSET := 10.0
 const CAMERA_CENTER_X := 960.0
@@ -109,7 +110,7 @@ func _draw_lines():
 			_draw_single_card(enemy)
 
 func _draw_single_card(entity: Dictionary):
-	var draw_scale: float = float(entity.get("card_scale", 1.0))
+	var draw_scale: float = _get_effective_scale(entity)
 	var draw_size: Vector2 = CARD_SIZE * draw_scale
 	var center: Vector2 = _project_camera_point(Vector2(entity.get("pos", Vector2.ZERO)), draw_scale)
 	var rect: Rect2 = Rect2(center - draw_size * 0.5, draw_size)
@@ -127,7 +128,7 @@ func _draw_single_card(entity: Dictionary):
 func _draw_reward_label(fighter: Dictionary):
 	if arcade_font == null:
 		return
-	var draw_scale: float = float(fighter.get("card_scale", 1.0))
+	var draw_scale: float = _get_effective_scale(fighter)
 	var base_pos: Vector2 = _project_camera_point(Vector2(fighter.get("base", Vector2.ZERO)), draw_scale)
 	var width: float = CARD_SIZE.x * draw_scale
 	var reward_anchor: Vector2 = base_pos + Vector2(-width * 0.5 + REWARD_X_OFFSET, REWARD_Y_OFFSET)
@@ -180,6 +181,9 @@ func _recenter_camera_angle():
 func _exit_tree():
 	camera_drag_active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _get_effective_scale(entity: Dictionary) -> float:
+	return float(entity.get("card_scale", 1.0)) * CARD_DRAMA_ZOOM
 
 func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2:
 	var centered_x: float = source.x - CAMERA_CENTER_X
