@@ -354,10 +354,12 @@ func _execute_battle():
 		if engage_slots[i] > 0:
 			GameState.arrayFightingHeroes[i] = engage_slots[i]
 
-	if ResourceLoader.exists("res://features/fight_room/scenes/fight_room_perspective.tscn"):
-		get_tree().change_scene_to_file("res://features/fight_room/scenes/fight_room_perspective.tscn")
-	elif ResourceLoader.exists("res://features/fight_room/scenes/fight_room.tscn"):
-		get_tree().change_scene_to_file("res://features/fight_room/scenes/fight_room.tscn")
+	if ResourceLoader.exists("res://features/fight_room/scenes/fight_room_3d.tscn"):
+		get_tree().change_scene_to_file("res://features/fight_room/scenes/fight_room_3d.tscn")
+	#if ResourceLoader.exists("res://features/fight_room/scenes/fight_room_perspective.tscn"):
+	#	get_tree().change_scene_to_file("res://features/fight_room/scenes/fight_room_perspective.tscn")
+	#elif ResourceLoader.exists("res://features/fight_room/scenes/fight_room.tscn"):
+	#	get_tree().change_scene_to_file("res://features/fight_room/scenes/fight_room.tscn")
 	else:
 		print("fight_room is not ported yet.")
 		battle_complete = false

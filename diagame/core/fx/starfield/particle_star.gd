@@ -41,7 +41,7 @@ func _apply_fight_room_texture_variant():
 	if current_scene == null:
 		return
 	var scene_path: String = String(current_scene.scene_file_path)
-	if not (scene_path.ends_with("fight_room.tscn") or scene_path.ends_with("fight_room_perspective.tscn")):
+	if not (scene_path.ends_with("fight_room.tscn") or scene_path.ends_with("fight_room_perspective.tscn") or scene_path.ends_with("fight_room_3d.tscn")):
 		return
 
 	var replacement_path := ""

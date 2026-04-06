@@ -2,19 +2,28 @@ extends Node3D
 
 const SIDE_COLUMNS := 2
 const ROWS_PER_COLUMN := 3
-const LEFT_COLUMN_X: Array[float] = [-3.4, -1.9]
-const RIGHT_COLUMN_X: Array[float] = [1.9, 3.4]
-const ROW_Y: Array[float] = [1.55, 0.15, -1.25]
+const LEFT_COLUMN_X_SCREEN: Array[float] = [320.0, 560.0]
+const RIGHT_COLUMN_X_SCREEN: Array[float] = [1600.0, 1360.0]
+const ROW_Y_SCREEN: Array[float] = [650.0, 560.0, 485.0]
+const ROW_X_TO_CENTER_SHIFT_SCREEN: Array[float] = [0.0, 55.0, 105.0]
 const ROW_Z: Array[float] = [0.0, -0.35, -0.7]
 const ROW_SCALE: Array[float] = [1.0, 0.86, 0.74]
-const ROW_X_SHIFT: Array[float] = [0.0, 0.22, 0.42]
+
+const DESIGN_SIZE := Vector2(1920.0, 1080.0)
+const WORLD_VIEW_SIZE := Vector2(19.2, 10.8)
+const WORLD_PER_PIXEL_X := WORLD_VIEW_SIZE.x / DESIGN_SIZE.x
+const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
 const CAMERA_START_POS := Vector3(0.0, 0.0, 11.6)
 const CAMERA_START_ROT := Vector3(0.0, 0.0, 0.0)
-const CAMERA_YAW_MAX := 0.6
-const CAMERA_PITCH_MAX := 0.3
 const CAMERA_DRAG_SENSITIVITY := 0.0035
+const CAMERA_ZOOM_STRENGTH := 6.5
+const CAMERA_MIN_Z := 2.0
+const CAMERA_MAX_Z := 30.0
+const STAR_LAYER_Z := -2.4
+const STAR_COUNT := 54
+const STAR_WORLD_SPEED_SCALE := 0.0065
 
 const START_DELAY := 40.0 / 60.0
 const IMPACT_DELAY := 20.0 / 60.0
@@ -22,15 +31,12 @@ const CHAIN_DELAY := 60.0 / 60.0
 const GROUP_FADE_DELAY := 20.0 / 60.0
 const VICTORY_POST_DELAY := 60.0 / 60.0
 
-const DRAMA_ZOOM_MIN := 0.8
-const DRAMA_ZOOM_MAX := 2.2
-const SPREAD_MIN := -260.0
-const SPREAD_MAX := 260.0
-const HOLD_ZOOM_SPEED := 0.9
-const HOLD_SPREAD_SPEED := 240.0
-const HOLD_VERTICAL_SPEED := 220.0
-const POSITION_ZOOM_STRENGTH := 0.75
-const AVG_DEPTH_WEIGHT := 0.72
+const HOLD_ZOOM_SPEED := 0.45
+const HOLD_SPREAD_SPEED := 36.0
+const HOLD_VERTICAL_SPEED := 36.0
+const DEFAULT_DRAMATIC_ZOOM := 1.22
+const DEFAULT_HORIZONTAL_SPREAD := 0.0
+const DEFAULT_VERTICAL_SPREAD := 0.0
 
 @export var dramatic_zoom: float = 1.35
 @export var horizontal_spread: float = 0.0
@@ -40,6 +46,7 @@ const AVG_DEPTH_WEIGHT := 0.72
 @onready var camera: Camera3D = $Camera3D
 @onready var hero_root: Node3D = $Cards/HeroCards
 @onready var enemy_root: Node3D = $Cards/EnemyCards
+@onready var stars_root: Node3D = $Stars
 @onready var title_label: Label = $HUD/TitleLabel
 @onready var banner_label: Label = $HUD/BannerLabel
 @onready var debug_label: Label = $HUD/DebugLabel
@@ -51,6 +58,7 @@ var flare_texture: Texture2D
 var next_button_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
+var star_materials: Array[StandardMaterial3D] = []
 
 var selected_heroes: Array[int] = []
 var mission_enemies: Array[int] = []
@@ -83,6 +91,9 @@ var camera_drag_active: bool = false
 func _ready():
 	randomize()
 	GameState.ensure_ported_data()
+	dramatic_zoom = DEFAULT_DRAMATIC_ZOOM
+	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
+	vertical_spread = DEFAULT_VERTICAL_SPREAD
 	arcade_font = GameState.arcade_font if GameState.arcade_font else load("res://assets/fonts/PressStart2P-Regular.ttf")
 	flare_texture = load("res://assets/sprites/Flare.png")
 	next_button_texture = load("res://assets/sprites/Next_0.png")
@@ -92,12 +103,14 @@ func _ready():
 
 	_setup_3d_camera()
 	_load_mission_state()
+	_setup_world_stars()
 	_build_fighter_lines()
 	_setup_overlay()
 	_setup_ambient_fx()
 
 	GameState.reset_starfield_defaults()
 	GameState.clear_starfield_particles()
+	GameState.set_starfield_enabled(false)
 	GameState.set_starfield_spawn_interval(1.0 / 60.0)
 
 	var roll: int = randi_range(0, 100)
@@ -119,10 +132,88 @@ func _ready():
 	_sync_all_cards()
 
 func _setup_3d_camera():
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = 52.0
+	camera.near = 0.1
+	camera.far = 200.0
 	camera.position = CAMERA_START_POS
 	camera.rotation = CAMERA_START_ROT
+	camera_rotation = CAMERA_START_ROT
 	camera.current = true
 	_update_camera_transform()
+
+func _setup_world_stars():
+	for child in stars_root.get_children():
+		child.queue_free()
+	star_materials.clear()
+
+	var star_textures: Array[Texture2D] = [
+		load("res://assets/sprites/Star1d_0.png"),
+		load("res://assets/sprites/Star2d_0.png"),
+		load("res://assets/sprites/Star3d_0.png")
+	]
+
+	for _i in range(STAR_COUNT):
+		var star := MeshInstance3D.new()
+		var mesh := QuadMesh.new()
+		mesh.size = Vector2(randf_range(0.85, 2.6), randf_range(0.08, 0.18))
+		star.mesh = mesh
+		star.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+		var mat := StandardMaterial3D.new()
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.cull_mode = BaseMaterial3D.CULL_BACK
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.no_depth_test = true
+		mat.render_priority = -120
+		mat.albedo_texture = star_textures[randi() % star_textures.size()]
+		mat.albedo_color = Color(1.0, 1.0, 1.0, randf_range(0.18, 0.5))
+		star.material_override = mat
+		star_materials.append(mat)
+
+		star.position = Vector3(
+			randf_range(-10.2, 10.2),
+			randf_range(-5.1, 5.1),
+			STAR_LAYER_Z + randf_range(-0.1, 0.1)
+		)
+		stars_root.add_child(star)
+
+func _update_world_stars(delta: float):
+	var step_world: float = maxf(0.01, GameState.star_speed * STAR_WORLD_SPEED_SCALE * delta * 60.0)
+	for star in stars_root.get_children():
+		if not (star is Node3D):
+			continue
+		var n: Node3D = star
+		n.position.x -= step_world
+		if n.position.x < -11.2:
+			n.position.x = 11.2
+			n.position.y = randf_range(-5.1, 5.1)
+
+func _apply_card_render_priority() -> void:
+	var drawables: Array[Dictionary] = []
+	for entry in left_fighters:
+		var left_node: MeshInstance3D = entry.get("node", null)
+		if left_node == null or not bool(entry.get("visible", true)):
+			continue
+		drawables.append({"node": left_node, "dist": camera.global_position.distance_to(left_node.global_position)})
+	for entry in right_fighters:
+		var right_node: MeshInstance3D = entry.get("node", null)
+		if right_node == null or not bool(entry.get("visible", true)):
+			continue
+		drawables.append({"node": right_node, "dist": camera.global_position.distance_to(right_node.global_position)})
+
+	drawables.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a.get("dist", 0.0)) > float(b.get("dist", 0.0))
+	)
+
+	for i in range(drawables.size()):
+		var node: MeshInstance3D = drawables[i].get("node", null)
+		if node == null:
+			continue
+		var mat: Variant = node.material_override
+		if mat != null and mat is StandardMaterial3D:
+			mat.no_depth_test = true
+			mat.render_priority = clampi(10 + i, -128, 127)
 
 func _setup_overlay():
 	return_button.visible = false
@@ -200,6 +291,7 @@ func _build_fighter_lines():
 				"visible": true,
 				"node": card,
 				"card_scale": ROW_SCALE[row],
+				"side_sign": -1.0,
 				"depth": row + (col * 0.02),
 			})
 
@@ -230,14 +322,22 @@ func _build_fighter_lines():
 				"visible": true,
 				"node": card,
 				"card_scale": ROW_SCALE[row],
+				"side_sign": 1.0,
 				"depth": row + (col * 0.02),
 			})
 
 func _make_base_position(is_hero: bool, column: int, row: int) -> Vector3:
-	var x_base: float = LEFT_COLUMN_X[column] if is_hero else RIGHT_COLUMN_X[column]
-	var x_shift: float = ROW_X_SHIFT[row]
-	var x: float = x_base + x_shift if is_hero else x_base - x_shift
-	return Vector3(x, ROW_Y[row], ROW_Z[row])
+	var x_base: float = LEFT_COLUMN_X_SCREEN[column] if is_hero else RIGHT_COLUMN_X_SCREEN[column]
+	var x_shift: float = ROW_X_TO_CENTER_SHIFT_SCREEN[row]
+	var x_screen: float = x_base + x_shift if is_hero else x_base - x_shift
+	var y_screen: float = ROW_Y_SCREEN[row]
+	return _screen_to_world(Vector2(x_screen, y_screen), ROW_Z[row])
+
+func _screen_to_world(screen_pos: Vector2, z_depth: float) -> Vector3:
+	var centered: Vector2 = screen_pos - (DESIGN_SIZE * 0.5)
+	var x_world: float = centered.x * (WORLD_VIEW_SIZE.x / DESIGN_SIZE.x)
+	var y_world: float = -centered.y * (WORLD_VIEW_SIZE.y / DESIGN_SIZE.y)
+	return Vector3(x_world, y_world, z_depth)
 
 func _create_card_node(texture: Texture2D, node_name: String) -> MeshInstance3D:
 	var card := MeshInstance3D.new()
@@ -250,8 +350,9 @@ func _create_card_node(texture: Texture2D, node_name: String) -> MeshInstance3D:
 func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.cull_mode = BaseMaterial3D.CULL_BACK
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.no_depth_test = true
 	material.albedo_texture = texture
 	return material
 
@@ -273,8 +374,10 @@ func _process(delta: float):
 	_update_runtime_tuning(delta)
 	_update_battle_timeline(delta)
 	_update_camera_transform()
+	_update_world_stars(delta)
 	_update_motion(delta)
 	_sync_all_cards()
+	_apply_card_render_priority()
 	_update_overlay()
 
 func _update_runtime_tuning(delta: float):
@@ -284,7 +387,7 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_PAGEDOWN):
 		zoom_dir -= 1.0
 	if not is_zero_approx(zoom_dir):
-		dramatic_zoom = clamp(dramatic_zoom + zoom_dir * HOLD_ZOOM_SPEED * delta, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
+		dramatic_zoom += zoom_dir * HOLD_ZOOM_SPEED * delta
 
 	var spread_dir := 0.0
 	if Input.is_key_pressed(KEY_LEFT):
@@ -292,7 +395,7 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_RIGHT):
 		spread_dir -= 1.0
 	if not is_zero_approx(spread_dir):
-		horizontal_spread = clamp(horizontal_spread + spread_dir * HOLD_SPREAD_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
+		horizontal_spread += spread_dir * HOLD_SPREAD_SPEED * delta
 
 	var vertical_dir := 0.0
 	if Input.is_key_pressed(KEY_UP):
@@ -300,9 +403,12 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_DOWN):
 		vertical_dir -= 1.0
 	if not is_zero_approx(vertical_dir):
-		vertical_spread = clamp(vertical_spread + vertical_dir * HOLD_VERTICAL_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
+		vertical_spread += vertical_dir * HOLD_VERTICAL_SPEED * delta
 
 func _update_camera_transform():
+	var zoom_offset: float = (dramatic_zoom - 1.0) * CAMERA_ZOOM_STRENGTH
+	var target_z: float = clamp(CAMERA_START_POS.z - zoom_offset, CAMERA_MIN_Z, CAMERA_MAX_Z)
+	camera.position = Vector3(CAMERA_START_POS.x, CAMERA_START_POS.y, target_z)
 	camera.rotation = camera_rotation
 
 func _input(event: InputEvent):
@@ -321,14 +427,16 @@ func _input(event: InputEvent):
 
 	if event is InputEventMouseMotion and camera_drag_active:
 		var mm: InputEventMouseMotion = event
-		camera_rotation.y = clamp(camera_rotation.y - mm.relative.x * CAMERA_DRAG_SENSITIVITY, -CAMERA_YAW_MAX, CAMERA_YAW_MAX)
-		camera_rotation.x = clamp(camera_rotation.x - mm.relative.y * CAMERA_DRAG_SENSITIVITY, -CAMERA_PITCH_MAX, CAMERA_PITCH_MAX)
+		# Match credits_3d behavior: yaw + pitch drag with pitch clamp.
+		camera_rotation.y -= mm.relative.x * CAMERA_DRAG_SENSITIVITY
+		camera_rotation.x -= mm.relative.y * CAMERA_DRAG_SENSITIVITY
+		camera_rotation.x = clamp(camera_rotation.x, -PI / 2.0, PI / 2.0)
 		return
 
 	if event is InputEventKey:
 		var key_event: InputEventKey = event
 		if key_event.pressed and key_event.keycode == KEY_HOME:
-			_recenter_camera_angle()
+			_reset_to_defaults()
 			return
 		if key_event.pressed and key_event.keycode == KEY_ESCAPE and camera_drag_active:
 			camera_drag_active = false
@@ -336,7 +444,15 @@ func _input(event: InputEvent):
 			return
 
 func _recenter_camera_angle():
-	camera_rotation = Vector3.ZERO
+	camera_rotation = CAMERA_START_ROT
+
+func _reset_to_defaults():
+	dramatic_zoom = DEFAULT_DRAMATIC_ZOOM
+	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
+	vertical_spread = DEFAULT_VERTICAL_SPREAD
+	_recenter_camera_angle()
+	camera_drag_active = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _update_motion(delta: float):
 	motion_step_accumulator += delta * 60.0
@@ -376,24 +492,25 @@ func _simulate_horizontal_bump(f: Dictionary):
 	var base: Vector3 = f["base"]
 	var hspd: float = float(f.get("hspd", 0.0))
 	var attack_dir: int = int(f.get("attack_dir", 1))
+	var step_x: float = WORLD_PER_PIXEL_X
 
 	if not is_equal_approx(pos.x, base.x):
 		hspd += -1.7
 
 	for _px in range(int(abs(hspd))):
 		if attack_dir > 0:
-			if is_equal_approx(pos.x, base.x - 0.05):
+			if is_equal_approx(pos.x, base.x - step_x):
 				break
-			pos.x += signf(hspd) * 0.05
+			pos.x += signf(hspd) * step_x
 		else:
-			if is_equal_approx(pos.x, base.x + 0.05):
+			if is_equal_approx(pos.x, base.x + step_x):
 				break
-			pos.x -= signf(hspd) * 0.05
+			pos.x -= signf(hspd) * step_x
 
 	f["hspd"] = hspd
 	f["pos"] = pos
 
-	if absf(pos.x - base.x) <= 0.05 and hspd <= 0.0:
+	if absf(pos.x - base.x) <= step_x and hspd <= 0.0:
 		f["pos"] = base
 		f["hspd"] = 0.0
 		f["is_attacking"] = false
@@ -402,18 +519,19 @@ func _simulate_vertical_jump(f: Dictionary):
 	var pos: Vector3 = f["pos"]
 	var base: Vector3 = f["base"]
 	var vspd: float = float(f.get("vspd", 0.0))
+	var step_y: float = WORLD_PER_PIXEL_Y
 
 	if not is_equal_approx(pos.y, base.y):
-		vspd += 0.5
+		vspd -= 0.5
 	else:
-		vspd = -10.0
+		vspd = 10.0
 
 	for _py in range(int(abs(vspd))):
-		if is_equal_approx(pos.y, base.y + 0.05):
+		if is_equal_approx(pos.y, base.y - step_y):
 			vspd = 0.0
 			pos.y = base.y
 			break
-		pos.y += signf(vspd) * 0.05
+		pos.y += signf(vspd) * step_y
 
 	f["vspd"] = vspd
 	f["pos"] = pos
@@ -428,29 +546,31 @@ func _sync_card(entry: Dictionary):
 	var node: MeshInstance3D = entry.get("node", null)
 	if node == null:
 		return
-	var pos: Vector3 = _project_world_point(Vector3(entry.get("pos", Vector3.ZERO)), float(entry.get("card_scale", 1.0)))
-	var scale_factor: float = float(entry.get("card_scale", 1.0)) * dramatic_zoom
+	var side_sign: float = float(entry.get("side_sign", 0.0))
+	var pos: Vector3 = _project_world_point(Vector3(entry.get("pos", Vector3.ZERO)), side_sign)
+	var scale_factor: float = float(entry.get("card_scale", 1.0))
 	node.position = pos
 	node.scale = Vector3.ONE * scale_factor
 	node.visible = bool(entry.get("visible", true))
-	node.modulate = Color(1.0, 1.0, 1.0, float(entry.get("alpha", 1.0)))
-	node.look_at(camera.global_position, Vector3.UP)
+	var _alpha: float = float(entry.get("alpha", 1.0))
+	var mat := node.material_override
+	if mat != null and mat is StandardMaterial3D:
+		var col: Color = mat.albedo_color
+		col.a = _alpha
+		mat.albedo_color = col
+	else:
+		var tmp := _make_card_material(null)
+		tmp.albedo_color = Color(1.0, 1.0, 1.0, _alpha)
+		node.material_override = tmp
+	# Use model-front alignment to avoid mirrored texture appearance.
+	node.look_at(camera.global_position, Vector3.UP, true)
 
-func _project_world_point(source: Vector3, perspective_scale: float) -> Vector3:
-	var centered_x: float = source.x
-	var centered_y: float = source.y
-	var depth_weight: float = lerp(0.42, 1.0, inverse_lerp(0.74, 1.0, perspective_scale))
-	var zoom_delta: float = dramatic_zoom - 1.0
-	var position_zoom_factor: float = 1.0 + (zoom_delta * POSITION_ZOOM_STRENGTH * depth_weight)
-	var side_sign: float = 0.0
-	if source.x < 0.0:
-		side_sign = -1.0
-	elif source.x > 0.0:
-		side_sign = 1.0
-	var depth_centered: float = depth_weight - AVG_DEPTH_WEIGHT
+func _project_world_point(source: Vector3, side_sign: float) -> Vector3:
+	var spread_world_x: float = horizontal_spread * (WORLD_VIEW_SIZE.x / DESIGN_SIZE.x)
+	var spread_world_y: float = vertical_spread * (WORLD_VIEW_SIZE.y / DESIGN_SIZE.y)
 	return Vector3(
-		centered_x * position_zoom_factor + (horizontal_spread * side_sign * depth_weight),
-		centered_y * position_zoom_factor - (vertical_spread * depth_centered),
+		source.x + (spread_world_x * side_sign),
+		source.y - spread_world_y,
 		source.z
 	)
 
@@ -613,3 +733,8 @@ func _return_to_mission_select():
 	GameState.reset_starfield_defaults()
 	GameState.clear_starfield_particles()
 	get_tree().change_scene_to_file("res://features/mission_select/scenes/mission_select.tscn")
+
+func _exit_tree():
+	GameState.set_starfield_enabled(true)
+	camera_drag_active = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

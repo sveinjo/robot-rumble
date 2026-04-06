@@ -13,14 +13,9 @@ const REWARD_X_OFFSET := 10.0
 
 const CAMERA_CENTER_X := 960.0
 const CAMERA_CENTER_Y := 540.0
-const CAMERA_YAW_MAX := 0.6
 const CAMERA_DRAG_SENSITIVITY := 0.0035
 const CAMERA_DEPTH_SWAY := 260.0
 
-const DRAMA_ZOOM_MIN := 0.8
-const DRAMA_ZOOM_MAX := 2.2
-const SPREAD_MIN := -260.0
-const SPREAD_MAX := 260.0
 const HOLD_ZOOM_SPEED := 0.9
 const HOLD_SPREAD_SPEED := 240.0
 const HOLD_VERTICAL_SPEED := 220.0
@@ -40,9 +35,6 @@ func _ready():
 	super._ready()
 	battle_started = false
 	action_timer = START_DELAY
-	dramatic_zoom = clamp(dramatic_zoom, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
-	horizontal_spread = clamp(horizontal_spread, SPREAD_MIN, SPREAD_MAX)
-	vertical_spread = clamp(vertical_spread, SPREAD_MIN, SPREAD_MAX)
 
 func _process(delta: float):
 	super._process(delta)
@@ -55,7 +47,7 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_PAGEDOWN):
 		zoom_dir -= 1.0
 	if not is_zero_approx(zoom_dir):
-		dramatic_zoom = clamp(dramatic_zoom + zoom_dir * HOLD_ZOOM_SPEED * delta, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
+		dramatic_zoom += zoom_dir * HOLD_ZOOM_SPEED * delta
 
 	var spread_dir := 0.0
 	# Symmetric spread: left arrow pushes heroes outward-left and enemies outward-right.
@@ -64,7 +56,7 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_RIGHT):
 		spread_dir -= 1.0
 	if not is_zero_approx(spread_dir):
-		horizontal_spread = clamp(horizontal_spread + spread_dir * HOLD_SPREAD_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
+		horizontal_spread += spread_dir * HOLD_SPREAD_SPEED * delta
 
 	var vertical_dir := 0.0
 	if Input.is_key_pressed(KEY_UP):
@@ -72,7 +64,7 @@ func _update_runtime_tuning(delta: float):
 	if Input.is_key_pressed(KEY_DOWN):
 		vertical_dir -= 1.0
 	if not is_zero_approx(vertical_dir):
-		vertical_spread = clamp(vertical_spread + vertical_dir * HOLD_VERTICAL_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
+		vertical_spread += vertical_dir * HOLD_VERTICAL_SPEED * delta
 
 func _build_fighter_lines():
 	left_fighters.clear()
@@ -235,7 +227,7 @@ func _input(event: InputEvent):
 
 	if event is InputEventMouseMotion and camera_drag_active:
 		var mm: InputEventMouseMotion = event
-		camera_yaw = clamp(camera_yaw - mm.relative.x * CAMERA_DRAG_SENSITIVITY, -CAMERA_YAW_MAX, CAMERA_YAW_MAX)
+		camera_yaw -= mm.relative.x * CAMERA_DRAG_SENSITIVITY
 		return
 
 	if event is InputEventKey:

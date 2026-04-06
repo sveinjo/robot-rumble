@@ -17,6 +17,21 @@ shading_mode = 0
 albedo_texture = ExtResource("2_bg")
 texture_filter = 1
 
+[sub_resource type="QuadMesh" id="QuadMesh_CardProxy"]
+size = Vector2(1.76, 1.76)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_HeroProxy"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.72, 0.88, 1, 0.65)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_EnemyProxy"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.76, 0.76, 0.65)
+
 [node name="FightRoom3D" type="Node3D"]
 script = ExtResource("1_script")
 
@@ -41,7 +56,77 @@ surface_material_override/0 = SubResource("StandardMaterial3D_Backdrop")
 
 [node name="HeroCards" type="Node3D" parent="Cards"]
 
+[node name="HeroProxy_0_0" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-6.4, -1.1, 0)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
+[node name="HeroProxy_1_0" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-5.85, -0.2, -0.35)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
+[node name="HeroProxy_2_0" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-5.35, 0.55, -0.7)
+scale = Vector3(0.74, 0.74, 0.74)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
+[node name="HeroProxy_0_1" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-4, -1.1, 0)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
+[node name="HeroProxy_1_1" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-3.45, -0.2, -0.35)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
+[node name="HeroProxy_2_1" type="MeshInstance3D" parent="Cards/HeroCards"]
+position = Vector3(-2.95, 0.55, -0.7)
+scale = Vector3(0.74, 0.74, 0.74)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
+
 [node name="EnemyCards" type="Node3D" parent="Cards"]
+
+[node name="EnemyProxy_0_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(6.4, -1.1, 0)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="EnemyProxy_1_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(5.85, -0.2, -0.35)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="EnemyProxy_2_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(5.35, 0.55, -0.7)
+scale = Vector3(0.74, 0.74, 0.74)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="EnemyProxy_0_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(4, -1.1, 0)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="EnemyProxy_1_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(3.45, -0.2, -0.35)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="EnemyProxy_2_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
+position = Vector3(2.95, 0.55, -0.7)
+scale = Vector3(0.74, 0.74, 0.74)
+mesh = SubResource("QuadMesh_CardProxy")
+surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+
+[node name="Stars" type="Node3D" parent="."]
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
