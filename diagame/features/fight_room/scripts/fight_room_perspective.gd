@@ -1,35 +1,80 @@
 extends "res://features/fight_room/scripts/fight_room.gd"
 
-const LEFT_PERSPECTIVE_X: Array[float] = [300.0, 470.0, 640.0]
-const RIGHT_PERSPECTIVE_X: Array[float] = [1620.0, 1450.0, 1280.0]
-const PERSPECTIVE_Y: Array[float] = [650.0, 545.0, 455.0]
-const PERSPECTIVE_SCALE: Array[float] = [1.0, 0.86, 0.74]
-const CARD_DRAMA_ZOOM := 1.22
+const FIGHTER_COLUMNS := 4
+const LEFT_PERSPECTIVE_X: Array[float] = [300.0, 470.0, 640.0, 780.0]
+const RIGHT_PERSPECTIVE_X: Array[float] = [1620.0, 1450.0, 1280.0, 1140.0]
+const PERSPECTIVE_Y: Array[float] = [650.0, 560.0, 485.0, 425.0]
+const PERSPECTIVE_SCALE: Array[float] = [1.0, 0.88, 0.77, 0.69]
+
 const REWARD_Y_OFFSET := 84.0
 const REWARD_X_OFFSET := 10.0
+
 const CAMERA_CENTER_X := 960.0
 const CAMERA_YAW_MAX := 0.6
 const CAMERA_DRAG_SENSITIVITY := 0.0035
 const CAMERA_DEPTH_SWAY := 260.0
 
+const DRAMA_ZOOM_MIN := 0.8
+const DRAMA_ZOOM_MAX := 2.2
+const SPREAD_MIN := -260.0
+const SPREAD_MAX := 260.0
+const HOLD_ZOOM_SPEED := 0.9
+const HOLD_SPREAD_SPEED := 240.0
+
 var camera_yaw: float = 0.0
 var camera_drag_active: bool = false
+
+@export var dramatic_zoom: float = 1.35
+@export var horizontal_spread: float = 0.0
+@export var show_perspective_debug: bool = true
+
+func _ready():
+	# initialize but keep core behavior from parent
+	super._ready()
+	battle_started = false
+	action_timer = START_DELAY
+	dramatic_zoom = clamp(dramatic_zoom, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
+	horizontal_spread = clamp(horizontal_spread, SPREAD_MIN, SPREAD_MAX)
+
+func _process(delta: float):
+	super._process(delta)
+	_update_runtime_tuning(delta)
+
+func _update_runtime_tuning(delta: float):
+	var zoom_dir := 0.0
+	if Input.is_key_pressed(KEY_PAGEUP):
+		zoom_dir += 1.0
+	if Input.is_key_pressed(KEY_PAGEDOWN):
+		zoom_dir -= 1.0
+	if not is_zero_approx(zoom_dir):
+		dramatic_zoom = clamp(dramatic_zoom + zoom_dir * HOLD_ZOOM_SPEED * delta, DRAMA_ZOOM_MIN, DRAMA_ZOOM_MAX)
+
+	var spread_dir := 0.0
+	# Symmetric spread: left arrow pushes heroes outward-left and enemies outward-right.
+	if Input.is_key_pressed(KEY_LEFT):
+		spread_dir += 1.0
+	if Input.is_key_pressed(KEY_RIGHT):
+		spread_dir -= 1.0
+	if not is_zero_approx(spread_dir):
+		horizontal_spread = clamp(horizontal_spread + spread_dir * HOLD_SPREAD_SPEED * delta, SPREAD_MIN, SPREAD_MAX)
 
 func _build_fighter_lines():
 	left_fighters.clear()
 	right_fighters.clear()
 
-	for i in range(selected_heroes.size()):
-		var hero_id: int = selected_heroes[i]
+	# Build left side (heroes) with up to FIGHTER_COLUMNS columns; extra columns duplicate nearest available
+	for i in range(FIGHTER_COLUMNS):
+		var hero_id: int = _hero_for_column(i)
+		if hero_id <= 0:
+			continue
 		var raw_hero: Variant = GameState.arrayHeroes[hero_id]
 		if raw_hero == null:
 			continue
 		var hero: Dictionary = raw_hero
 		if not hero_textures.has(hero_id):
 			hero_textures[hero_id] = load(str(hero.get("texture_path", "")))
-		var slot_idx: int = mini(i, 2)
-		var slot_scale: float = PERSPECTIVE_SCALE[slot_idx]
-		var base: Vector2 = Vector2(LEFT_PERSPECTIVE_X[slot_idx], PERSPECTIVE_Y[slot_idx])
+		var slot_scale: float = PERSPECTIVE_SCALE[i]
+		var base: Vector2 = Vector2(LEFT_PERSPECTIVE_X[i], PERSPECTIVE_Y[i])
 		left_fighters.append({
 			"hero_id": hero_id,
 			"base": base,
@@ -44,11 +89,14 @@ func _build_fighter_lines():
 			"visible": true,
 			"tex": hero_textures.get(hero_id, null),
 			"card_scale": slot_scale,
-			"depth": slot_idx
+			"depth": i,
 		})
 
-	for i in range(3):
-		var enemy_id: int = mission_enemies[i]
+	# Build right side (enemies)
+	for i in range(FIGHTER_COLUMNS):
+		var enemy_id: int = _enemy_for_column(i)
+		if enemy_id <= 0:
+			continue
 		var raw_enemy: Variant = GameState.arrayEnemies[enemy_id]
 		if raw_enemy == null:
 			continue
@@ -69,8 +117,24 @@ func _build_fighter_lines():
 			"visible": true,
 			"tex": enemy_textures.get(enemy_id, null),
 			"card_scale": slot_scale,
-			"depth": i
+			"depth": i,
 		})
+
+func _hero_for_column(column: int) -> int:
+	if selected_heroes.is_empty():
+		return 0
+	if column < selected_heroes.size():
+		return int(selected_heroes[column])
+	# Extra column copies nearest-center selected hero.
+	return int(selected_heroes[selected_heroes.size() - 1])
+
+func _enemy_for_column(column: int) -> int:
+	if mission_enemies.is_empty():
+		return 0
+	if column < mission_enemies.size():
+		return int(mission_enemies[column])
+	# Extra column copies nearest-center mission enemy.
+	return int(mission_enemies[mission_enemies.size() - 1])
 
 func _draw_lines():
 	var drawables: Array[Dictionary] = []
@@ -169,6 +233,11 @@ func _input(event: InputEvent):
 	if click.button_index != MOUSE_BUTTON_LEFT:
 		return
 
+	if not battle_started:
+		battle_started = true
+		action_timer = START_DELAY
+		return
+
 	if not return_visible:
 		return
 	var local_p: Vector2 = to_local(click.position)
@@ -183,12 +252,38 @@ func _exit_tree():
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _get_effective_scale(entity: Dictionary) -> float:
-	return float(entity.get("card_scale", 1.0)) * CARD_DRAMA_ZOOM
+	return float(entity.get("card_scale", 1.0)) * dramatic_zoom
+
+func _draw_result_banner():
+	if arcade_font == null:
+		return
+	if not battle_started:
+		_draw_centered_shadowed_text("LEFT CLICK TO START", Vector2(TEXT_CENTER_X, BANNER_Y), 24, Color(1.0, 0.95, 0.35))
+		return
+	super._draw_result_banner()
+
+func _draw_star_debug_counts():
+	super._draw_star_debug_counts()
+	if not show_perspective_debug:
+		return
+	if arcade_font == null:
+		return
+	var zoom_info: String = "Perspective Zoom: %.2f (hold PageUp/PageDown)" % dramatic_zoom
+	var spread_info: String = "Horizontal Spread: %.1f (hold Left/Right)" % horizontal_spread
+	draw_string(arcade_font, Vector2(32, 126), zoom_info, HORIZONTAL_ALIGNMENT_LEFT, 980, 16, Color(1.0, 0.9, 0.45, 0.95))
+	draw_string(arcade_font, Vector2(32, 146), spread_info, HORIZONTAL_ALIGNMENT_LEFT, 980, 16, Color(1.0, 0.9, 0.45, 0.95))
 
 func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2:
 	var centered_x: float = source.x - CAMERA_CENTER_X
 	var depth_weight: float = lerp(0.42, 1.0, inverse_lerp(0.72, 1.0, perspective_scale))
 	var swing: float = CAMERA_DEPTH_SWAY * camera_yaw * depth_weight
-	var projected_x: float = CAMERA_CENTER_X + centered_x + swing
+
+	var side_sign := 0.0
+	if source.x < CAMERA_CENTER_X:
+		side_sign = -1.0
+	elif source.x > CAMERA_CENTER_X:
+		side_sign = 1.0
+
+	var projected_x: float = CAMERA_CENTER_X + centered_x + swing + (horizontal_spread * side_sign)
 	var projected_y: float = source.y + absf(centered_x) * absf(camera_yaw) * 0.02
 	return Vector2(projected_x, projected_y)
