@@ -1,10 +1,12 @@
 extends "res://features/fight_room/scripts/fight_room.gd"
 
-const FIGHTER_COLUMNS := 4
-const LEFT_PERSPECTIVE_X: Array[float] = [300.0, 470.0, 640.0, 780.0]
-const RIGHT_PERSPECTIVE_X: Array[float] = [1620.0, 1450.0, 1280.0, 1140.0]
-const PERSPECTIVE_Y: Array[float] = [650.0, 560.0, 485.0, 425.0]
-const PERSPECTIVE_SCALE: Array[float] = [1.0, 0.88, 0.77, 0.69]
+const SIDE_COLUMNS := 2
+const ROWS_PER_COLUMN := 3
+const LEFT_COLUMN_X: Array[float] = [320.0, 560.0]
+const RIGHT_COLUMN_X: Array[float] = [1600.0, 1360.0]
+const ROW_Y: Array[float] = [650.0, 560.0, 485.0]
+const ROW_SCALE: Array[float] = [1.0, 0.86, 0.74]
+const ROW_X_TO_CENTER_SHIFT: Array[float] = [0.0, 55.0, 105.0]
 
 const REWARD_Y_OFFSET := 84.0
 const REWARD_X_OFFSET := 10.0
@@ -62,9 +64,9 @@ func _build_fighter_lines():
 	left_fighters.clear()
 	right_fighters.clear()
 
-	# Build left side (heroes) with up to FIGHTER_COLUMNS columns; extra columns duplicate nearest available
-	for i in range(FIGHTER_COLUMNS):
-		var hero_id: int = _hero_for_column(i)
+	# Build heroes: 2 columns, each column contains the same 3-hero lineup (6 total).
+	for row in range(ROWS_PER_COLUMN):
+		var hero_id: int = _hero_for_row(row)
 		if hero_id <= 0:
 			continue
 		var raw_hero: Variant = GameState.arrayHeroes[hero_id]
@@ -73,28 +75,31 @@ func _build_fighter_lines():
 		var hero: Dictionary = raw_hero
 		if not hero_textures.has(hero_id):
 			hero_textures[hero_id] = load(str(hero.get("texture_path", "")))
-		var slot_scale: float = PERSPECTIVE_SCALE[i]
-		var base: Vector2 = Vector2(LEFT_PERSPECTIVE_X[i], PERSPECTIVE_Y[i])
-		left_fighters.append({
-			"hero_id": hero_id,
-			"base": base,
-			"pos": base,
-			"alpha": 1.0,
-			"fade": false,
-			"jump": false,
-			"hspd": 0.0,
-			"vspd": 0.0,
-			"is_attacking": false,
-			"attack_dir": 1,
-			"visible": true,
-			"tex": hero_textures.get(hero_id, null),
-			"card_scale": slot_scale,
-			"depth": i,
-		})
 
-	# Build right side (enemies)
-	for i in range(FIGHTER_COLUMNS):
-		var enemy_id: int = _enemy_for_column(i)
+		for col in range(SIDE_COLUMNS):
+			var slot_scale: float = ROW_SCALE[row]
+			var x_shift_to_center: float = ROW_X_TO_CENTER_SHIFT[row]
+			var base: Vector2 = Vector2(LEFT_COLUMN_X[col] + x_shift_to_center, ROW_Y[row])
+			left_fighters.append({
+				"hero_id": hero_id,
+				"base": base,
+				"pos": base,
+				"alpha": 1.0,
+				"fade": false,
+				"jump": false,
+				"hspd": 0.0,
+				"vspd": 0.0,
+				"is_attacking": false,
+				"attack_dir": 1,
+				"visible": true,
+				"tex": hero_textures.get(hero_id, null),
+				"card_scale": slot_scale,
+				"depth": row + (col * 0.02),
+			})
+
+	# Build enemies: 2 columns, each column contains the same 3-enemy lineup (6 total).
+	for row in range(ROWS_PER_COLUMN):
+		var enemy_id: int = _enemy_for_row(row)
 		if enemy_id <= 0:
 			continue
 		var raw_enemy: Variant = GameState.arrayEnemies[enemy_id]
@@ -103,37 +108,40 @@ func _build_fighter_lines():
 		var enemy: Dictionary = raw_enemy
 		if not enemy_textures.has(enemy_id):
 			enemy_textures[enemy_id] = load(str(enemy.get("texture_path", "")))
-		var slot_scale: float = PERSPECTIVE_SCALE[i]
-		var base: Vector2 = Vector2(RIGHT_PERSPECTIVE_X[i], PERSPECTIVE_Y[i])
-		right_fighters.append({
-			"enemy_id": enemy_id,
-			"base": base,
-			"pos": base,
-			"alpha": 1.0,
-			"fade": false,
-			"hspd": 0.0,
-			"is_attacking": false,
-			"attack_dir": -1,
-			"visible": true,
-			"tex": enemy_textures.get(enemy_id, null),
-			"card_scale": slot_scale,
-			"depth": i,
-		})
 
-func _hero_for_column(column: int) -> int:
+		for col in range(SIDE_COLUMNS):
+			var slot_scale: float = ROW_SCALE[row]
+			var x_shift_to_center: float = ROW_X_TO_CENTER_SHIFT[row]
+			var base: Vector2 = Vector2(RIGHT_COLUMN_X[col] - x_shift_to_center, ROW_Y[row])
+			right_fighters.append({
+				"enemy_id": enemy_id,
+				"base": base,
+				"pos": base,
+				"alpha": 1.0,
+				"fade": false,
+				"hspd": 0.0,
+				"is_attacking": false,
+				"attack_dir": -1,
+				"visible": true,
+				"tex": enemy_textures.get(enemy_id, null),
+				"card_scale": slot_scale,
+				"depth": row + (col * 0.02),
+			})
+
+func _hero_for_row(row: int) -> int:
 	if selected_heroes.is_empty():
 		return 0
-	if column < selected_heroes.size():
-		return int(selected_heroes[column])
-	# Extra column copies nearest-center selected hero.
+	if row < selected_heroes.size():
+		return int(selected_heroes[row])
+	# Fallback safety if squad is short.
 	return int(selected_heroes[selected_heroes.size() - 1])
 
-func _enemy_for_column(column: int) -> int:
+func _enemy_for_row(row: int) -> int:
 	if mission_enemies.is_empty():
 		return 0
-	if column < mission_enemies.size():
-		return int(mission_enemies[column])
-	# Extra column copies nearest-center mission enemy.
+	if row < mission_enemies.size():
+		return int(mission_enemies[row])
+	# Fallback safety if mission enemy list is short.
 	return int(mission_enemies[mission_enemies.size() - 1])
 
 func _draw_lines():
