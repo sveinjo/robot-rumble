@@ -12,6 +12,7 @@ const REWARD_Y_OFFSET := 84.0
 const REWARD_X_OFFSET := 10.0
 
 const CAMERA_CENTER_X := 960.0
+const CAMERA_CENTER_Y := 540.0
 const CAMERA_YAW_MAX := 0.6
 const CAMERA_DRAG_SENSITIVITY := 0.0035
 const CAMERA_DEPTH_SWAY := 260.0
@@ -23,6 +24,8 @@ const SPREAD_MAX := 260.0
 const HOLD_ZOOM_SPEED := 0.9
 const HOLD_SPREAD_SPEED := 240.0
 const HOLD_VERTICAL_SPEED := 220.0
+const POSITION_ZOOM_STRENGTH := 0.75
+const AVG_DEPTH_WEIGHT := 0.72
 
 var camera_yaw: float = 0.0
 var camera_drag_active: bool = false
@@ -296,8 +299,11 @@ func _draw_star_debug_counts():
 
 func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2:
 	var centered_x: float = source.x - CAMERA_CENTER_X
+	var centered_y: float = source.y - CAMERA_CENTER_Y
 	var depth_weight: float = lerp(0.42, 1.0, inverse_lerp(0.72, 1.0, perspective_scale))
 	var swing: float = CAMERA_DEPTH_SWAY * camera_yaw * depth_weight
+	var zoom_delta: float = dramatic_zoom - 1.0
+	var position_zoom_factor: float = 1.0 + (zoom_delta * POSITION_ZOOM_STRENGTH * depth_weight)
 
 	var side_sign := 0.0
 	if source.x < CAMERA_CENTER_X:
@@ -306,6 +312,8 @@ func _project_camera_point(source: Vector2, perspective_scale: float) -> Vector2
 		side_sign = 1.0
 
 	# Perspective-aware adjustment: near cards (higher depth_weight) shift more than far cards.
-	var projected_x: float = CAMERA_CENTER_X + centered_x + swing + (horizontal_spread * side_sign * depth_weight)
-	var projected_y: float = source.y + absf(centered_x) * absf(camera_yaw) * 0.02 - (vertical_spread * depth_weight)
+	var projected_x: float = CAMERA_CENTER_X + (centered_x * position_zoom_factor) + swing + (horizontal_spread * side_sign * depth_weight)
+	# Keep vertical spread centered by using a zero-centered depth offset.
+	var depth_centered: float = depth_weight - AVG_DEPTH_WEIGHT
+	var projected_y: float = CAMERA_CENTER_Y + (centered_y * position_zoom_factor) + absf(centered_x) * absf(camera_yaw) * 0.02 - (vertical_spread * depth_centered)
 	return Vector2(projected_x, projected_y)
