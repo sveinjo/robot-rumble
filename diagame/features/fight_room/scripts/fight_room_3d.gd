@@ -13,6 +13,7 @@ const DESIGN_SIZE := Vector2(1920.0, 1080.0)
 const WORLD_VIEW_SIZE := Vector2(19.2, 10.8)
 const WORLD_PER_PIXEL_X := WORLD_VIEW_SIZE.x / DESIGN_SIZE.x
 const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
+const ORTHO_BASE_SIZE := WORLD_VIEW_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
 const CAMERA_START_POS := Vector3(0.0, 0.0, 11.6)
@@ -21,7 +22,7 @@ const CAMERA_DRAG_SENSITIVITY := 0.0035
 const CAMERA_ZOOM_STRENGTH := 6.5
 const CAMERA_MIN_Z := 2.0
 const CAMERA_MAX_Z := 30.0
-const STAR_LAYER_Z := -2.4
+const STAR_LAYER_Z := -4.2
 const STAR_COUNT := 54
 const STAR_WORLD_SPEED_SCALE := 0.0065
 
@@ -33,8 +34,8 @@ const VICTORY_POST_DELAY := 60.0 / 60.0
 
 const HOLD_ZOOM_SPEED := 0.45
 const HOLD_SPREAD_SPEED := 36.0
-const HOLD_VERTICAL_SPEED := 36.0
-const DEFAULT_DRAMATIC_ZOOM := 1.22
+const HOLD_VERTICAL_SPEED := 120.0
+const DEFAULT_DRAMATIC_ZOOM := 1.0
 const DEFAULT_HORIZONTAL_SPREAD := 0.0
 const DEFAULT_VERTICAL_SPREAD := 0.0
 
@@ -132,8 +133,8 @@ func _ready():
 	_sync_all_cards()
 
 func _setup_3d_camera():
-	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
-	camera.fov = 52.0
+	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.size = ORTHO_BASE_SIZE
 	camera.near = 0.1
 	camera.far = 200.0
 	camera.position = CAMERA_START_POS
@@ -164,8 +165,6 @@ func _setup_world_stars():
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mat.cull_mode = BaseMaterial3D.CULL_BACK
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.no_depth_test = true
-		mat.render_priority = -120
 		mat.albedo_texture = star_textures[randi() % star_textures.size()]
 		mat.albedo_color = Color(1.0, 1.0, 1.0, randf_range(0.18, 0.5))
 		star.material_override = mat
@@ -188,32 +187,6 @@ func _update_world_stars(delta: float):
 		if n.position.x < -11.2:
 			n.position.x = 11.2
 			n.position.y = randf_range(-5.1, 5.1)
-
-func _apply_card_render_priority() -> void:
-	var drawables: Array[Dictionary] = []
-	for entry in left_fighters:
-		var left_node: MeshInstance3D = entry.get("node", null)
-		if left_node == null or not bool(entry.get("visible", true)):
-			continue
-		drawables.append({"node": left_node, "dist": camera.global_position.distance_to(left_node.global_position)})
-	for entry in right_fighters:
-		var right_node: MeshInstance3D = entry.get("node", null)
-		if right_node == null or not bool(entry.get("visible", true)):
-			continue
-		drawables.append({"node": right_node, "dist": camera.global_position.distance_to(right_node.global_position)})
-
-	drawables.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return float(a.get("dist", 0.0)) > float(b.get("dist", 0.0))
-	)
-
-	for i in range(drawables.size()):
-		var node: MeshInstance3D = drawables[i].get("node", null)
-		if node == null:
-			continue
-		var mat: Variant = node.material_override
-		if mat != null and mat is StandardMaterial3D:
-			mat.no_depth_test = true
-			mat.render_priority = clampi(10 + i, -128, 127)
 
 func _setup_overlay():
 	return_button.visible = false
@@ -352,7 +325,6 @@ func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_BACK
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.no_depth_test = true
 	material.albedo_texture = texture
 	return material
 
@@ -377,7 +349,6 @@ func _process(delta: float):
 	_update_world_stars(delta)
 	_update_motion(delta)
 	_sync_all_cards()
-	_apply_card_render_priority()
 	_update_overlay()
 
 func _update_runtime_tuning(delta: float):
@@ -406,9 +377,9 @@ func _update_runtime_tuning(delta: float):
 		vertical_spread += vertical_dir * HOLD_VERTICAL_SPEED * delta
 
 func _update_camera_transform():
-	var zoom_offset: float = (dramatic_zoom - 1.0) * CAMERA_ZOOM_STRENGTH
-	var target_z: float = clamp(CAMERA_START_POS.z - zoom_offset, CAMERA_MIN_Z, CAMERA_MAX_Z)
-	camera.position = Vector3(CAMERA_START_POS.x, CAMERA_START_POS.y, target_z)
+	var zoom_scale: float = maxf(0.05, dramatic_zoom)
+	camera.size = ORTHO_BASE_SIZE / zoom_scale
+	camera.position = CAMERA_START_POS
 	camera.rotation = camera_rotation
 
 func _input(event: InputEvent):
@@ -427,7 +398,7 @@ func _input(event: InputEvent):
 
 	if event is InputEventMouseMotion and camera_drag_active:
 		var mm: InputEventMouseMotion = event
-		# Match credits_3d behavior: yaw + pitch drag with pitch clamp.
+		# Debug orbit mode: yaw + pitch like credits camera.
 		camera_rotation.y -= mm.relative.x * CAMERA_DRAG_SENSITIVITY
 		camera_rotation.x -= mm.relative.y * CAMERA_DRAG_SENSITIVITY
 		camera_rotation.x = clamp(camera_rotation.x, -PI / 2.0, PI / 2.0)
@@ -562,15 +533,20 @@ func _sync_card(entry: Dictionary):
 		var tmp := _make_card_material(null)
 		tmp.albedo_color = Color(1.0, 1.0, 1.0, _alpha)
 		node.material_override = tmp
-	# Use model-front alignment to avoid mirrored texture appearance.
-	node.look_at(camera.global_position, Vector3.UP, true)
+	# Keep all cards at a consistent non-billboard angle.
+	node.rotation = Vector3.ZERO
 
 func _project_world_point(source: Vector3, side_sign: float) -> Vector3:
 	var spread_world_x: float = horizontal_spread * (WORLD_VIEW_SIZE.x / DESIGN_SIZE.x)
 	var spread_world_y: float = vertical_spread * (WORLD_VIEW_SIZE.y / DESIGN_SIZE.y)
+	# Center-anchored vertical spread: cards move away from/toward screen center symmetrically.
+	var center_anchor_y: float = 0.0
+	var rel_to_center: float = source.y - center_anchor_y
+	var half_height: float = WORLD_VIEW_SIZE.y * 0.5
+	var vertical_factor: float = spread_world_y / maxf(0.001, half_height)
 	return Vector3(
 		source.x + (spread_world_x * side_sign),
-		source.y - spread_world_y,
+		source.y + (rel_to_center * vertical_factor),
 		source.z
 	)
 
