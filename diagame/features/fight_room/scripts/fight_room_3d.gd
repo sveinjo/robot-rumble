@@ -36,6 +36,15 @@ const HOLD_VERTICAL_SPEED := 120.0
 const DEFAULT_DRAMATIC_ZOOM := 3.4
 const DEFAULT_HORIZONTAL_SPREAD := -182.0
 const DEFAULT_VERTICAL_SPREAD := 270.0
+const AA_MODE_LINEAR := 0
+const AA_MODE_POINT_SSAA := 1
+const SSAA_SAMPLE_OFFSETS: Array[Vector2] = [
+	Vector2(-0.25, -0.25),
+	Vector2(0.25, -0.25),
+	Vector2(-0.25, 0.25),
+	Vector2(0.25, 0.25),
+]
+const SSAA_SAMPLE_ALPHA := 0.25
 
 @export var dramatic_zoom: float = 1.35
 @export var horizontal_spread: float = 0.0
@@ -58,6 +67,7 @@ var next_button_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var star_materials: Array[StandardMaterial3D] = []
+var aa_mode: int = AA_MODE_LINEAR
 
 var selected_heroes: Array[int] = []
 var mission_enemies: Array[int] = []
@@ -260,6 +270,7 @@ func _build_fighter_lines():
 			var base := _make_base_position(true, col, row)
 			var card := _create_card_node(hero_textures.get(hero_id, null), "Hero_%d_%d" % [row, col])
 			hero_root.add_child(card)
+			var ssaa_nodes: Array[MeshInstance3D] = _create_ssaa_nodes(hero_textures.get(hero_id, null), "Hero_%d_%d" % [row, col], hero_root)
 			left_fighters.append({
 				"hero_id": hero_id,
 				"base": base,
@@ -276,6 +287,7 @@ func _build_fighter_lines():
 				"card_scale": ROW_SCALE[row],
 				"side_sign": -1.0,
 				"depth": row + (col * 0.02),
+				"ssaa_nodes": ssaa_nodes,
 			})
 
 	for row in range(ROWS_PER_COLUMN):
@@ -293,6 +305,7 @@ func _build_fighter_lines():
 			var base := _make_base_position(false, col, row)
 			var card := _create_card_node(enemy_textures.get(enemy_id, null), "Enemy_%d_%d" % [row, col])
 			enemy_root.add_child(card)
+			var ssaa_nodes: Array[MeshInstance3D] = _create_ssaa_nodes(enemy_textures.get(enemy_id, null), "Enemy_%d_%d" % [row, col], enemy_root)
 			right_fighters.append({
 				"enemy_id": enemy_id,
 				"base": base,
@@ -307,6 +320,7 @@ func _build_fighter_lines():
 				"card_scale": ROW_SCALE[row],
 				"side_sign": 1.0,
 				"depth": row + (col * 0.02),
+				"ssaa_nodes": ssaa_nodes,
 			})
 
 func _make_base_position(is_hero: bool, column: int, row: int) -> Vector3:
@@ -329,6 +343,15 @@ func _create_card_node(texture: Texture2D, node_name: String) -> MeshInstance3D:
 	card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	card.material_override = _make_card_material(texture)
 	return card
+
+func _create_ssaa_nodes(texture: Texture2D, node_prefix: String, parent: Node3D) -> Array[MeshInstance3D]:
+	var nodes: Array[MeshInstance3D] = []
+	for i in range(SSAA_SAMPLE_OFFSETS.size()):
+		var sample := _create_card_node(texture, "%s_SSAA_%d" % [node_prefix, i])
+		sample.visible = false
+		parent.add_child(sample)
+		nodes.append(sample)
+	return nodes
 
 func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
@@ -450,6 +473,9 @@ func _input(event: InputEvent):
 
 	if event is InputEventKey:
 		var key_event: InputEventKey = event
+		if key_event.pressed and key_event.keycode == KEY_TAB:
+			_toggle_aa_mode()
+			return
 		if key_event.pressed and key_event.keycode == KEY_HOME:
 			_reset_to_defaults()
 			return
@@ -465,9 +491,43 @@ func _reset_to_defaults():
 	dramatic_zoom = DEFAULT_DRAMATIC_ZOOM
 	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
 	vertical_spread = DEFAULT_VERTICAL_SPREAD
+	aa_mode = AA_MODE_LINEAR
 	_recenter_camera_angle()
 	camera_drag_active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_apply_aa_mode_to_all_cards()
+	_update_overlay()
+
+func _toggle_aa_mode():
+	aa_mode = AA_MODE_POINT_SSAA if aa_mode == AA_MODE_LINEAR else AA_MODE_LINEAR
+	_apply_aa_mode_to_all_cards()
+	_update_overlay()
+
+func _apply_aa_mode_to_all_cards():
+	for entry in left_fighters:
+		_apply_aa_mode_to_card(entry)
+	for entry in right_fighters:
+		_apply_aa_mode_to_card(entry)
+
+func _apply_aa_mode_to_card(entry: Dictionary):
+	var node: MeshInstance3D = entry.get("node", null)
+	if node == null:
+		return
+	var ssaa_nodes: Array = entry.get("ssaa_nodes", [])
+	var linear_mode := aa_mode == AA_MODE_LINEAR
+	if node.material_override is StandardMaterial3D:
+		var material: StandardMaterial3D = node.material_override
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if linear_mode else BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	if linear_mode:
+		node.visible = bool(entry.get("visible", true))
+		for sample_node in ssaa_nodes:
+			if sample_node is MeshInstance3D:
+				sample_node.visible = false
+	else:
+		node.visible = false
+		for sample_node in ssaa_nodes:
+			if sample_node is MeshInstance3D:
+				sample_node.visible = bool(entry.get("visible", true))
 
 func _update_motion(delta: float):
 	motion_step_accumulator += delta * 60.0
@@ -579,6 +639,24 @@ func _sync_card(entry: Dictionary):
 		node.material_override = tmp
 	# Keep all cards at a consistent non-billboard angle.
 	node.rotation = Vector3.ZERO
+
+	var ssaa_nodes: Array = entry.get("ssaa_nodes", [])
+	for i in range(ssaa_nodes.size()):
+		var sample_node: MeshInstance3D = ssaa_nodes[i]
+		if sample_node == null:
+			continue
+		var sample_offset: Vector2 = SSAA_SAMPLE_OFFSETS[i] if i < SSAA_SAMPLE_OFFSETS.size() else Vector2.ZERO
+		sample_node.position = pos + Vector3(sample_offset.x * WORLD_PER_PIXEL_X, -sample_offset.y * WORLD_PER_PIXEL_Y, 0.0)
+		sample_node.scale = Vector3.ONE * scale_factor
+		sample_node.rotation = Vector3.ZERO
+		if sample_node.material_override is StandardMaterial3D:
+			var sample_material: StandardMaterial3D = sample_node.material_override
+			sample_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			var sample_color: Color = sample_material.albedo_color
+			sample_color.a = SSAA_SAMPLE_ALPHA if aa_mode == AA_MODE_POINT_SSAA else _alpha
+			sample_material.albedo_color = sample_color
+		if aa_mode == AA_MODE_POINT_SSAA:
+			sample_node.visible = bool(entry.get("visible", true))
 
 func _project_world_point(source: Vector3, side_sign: float) -> Vector3:
 	var spread_world_x: float = horizontal_spread * (WORLD_VIEW_SIZE.x / DESIGN_SIZE.x)
@@ -753,8 +831,9 @@ func _update_overlay():
 		if GameState.has_node("/root/StarfieldManager"):
 			var counts: Dictionary = GameState.get_node("/root/StarfieldManager").get_star_type_counts()
 			star_info = "\nStars F/M/S: %d/%d/%d  Total:%d" % [int(counts.get("fast", 0)), int(counts.get("mid", 0)), int(counts.get("slow", 0)), int(counts.get("total", 0))]
+		var aa_label: String = "Linear + Mipmaps + AA" if aa_mode == AA_MODE_LINEAR else "Point + Manual SSAA"
 
-		debug_label.text = "Depth Drama: %.2f (PageUp/PageDown)\nHorizontal Spread: %.1f (Left/Right)\nVertical Spread: %.1f (Up/Down)%s\nRMB drag: orbit  Home: reset" % [dramatic_zoom, horizontal_spread, vertical_spread, star_info]
+		debug_label.text = "Depth Drama: %.2f (PageUp/PageDown)\nHorizontal Spread: %.1f (Left/Right)\nVertical Spread: %.1f (Up/Down)\nAA Mode: %s (Tab)%s\nRMB drag: orbit  Home: reset" % [dramatic_zoom, horizontal_spread, vertical_spread, aa_label, star_info]
 		debug_label.visible = show_perspective_debug
 
 	if return_button != null:
