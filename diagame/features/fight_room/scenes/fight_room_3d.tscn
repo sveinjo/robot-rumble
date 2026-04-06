@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://features/fight_room/scripts/fight_room_3d.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cv8xpco132u54" path="res://assets/sprites/background3.png" id="2_bg"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.08, 0.08, 0.1, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_Backdrop"]
+size = Vector2(19.2, 10.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Backdrop"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("2_bg")
+texture_filter = 1
+
+[node name="FightRoom3D" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-35, -30, 0)
+light_energy = 1.8
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.6)
+projection = 1
+current = true
+
+[node name="Backdrop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+mesh = SubResource("QuadMesh_Backdrop")
+surface_material_override/0 = SubResource("StandardMaterial3D_Backdrop")
+
+[node name="Cards" type="Node3D" parent="."]
+
+[node name="HeroCards" type="Node3D" parent="Cards"]
+
+[node name="EnemyCards" type="Node3D" parent="Cards"]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="TitleLabel" type="Label" parent="HUD"]
+offset_left = 32.0
+offset_top = 24.0
+text = "BATTLE"
+
+[node name="BannerLabel" type="Label" parent="HUD"]
+offset_left = 760.0
+offset_top = 96.0
+text = "LEFT CLICK TO START"
+
+[node name="DebugLabel" type="Label" parent="HUD"]
+offset_left = 32.0
+offset_top = 126.0
+text = "Zoom: 1.35"
+
+[node name="ReturnButton" type="Button" parent="HUD"]
+offset_left = 1540.0
+offset_top = 760.0
+offset_right = 1900.0
+offset_bottom = 840.0
+text = "RETURN"
+visible = false
