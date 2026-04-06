@@ -5,21 +5,19 @@ const ROWS_PER_COLUMN := 3
 const LEFT_COLUMN_X_SCREEN: Array[float] = [320.0, 560.0]
 const RIGHT_COLUMN_X_SCREEN: Array[float] = [1600.0, 1360.0]
 const ROW_Y_SCREEN: Array[float] = [650.0, 560.0, 485.0]
-const ROW_X_TO_CENTER_SHIFT_SCREEN: Array[float] = [0.0, 55.0, 105.0]
+const ROW_X_TO_CENTER_SHIFT_SCREEN: Array[float] = [55.0, 55.0, 55.0]
 const ROW_Z: Array[float] = [0.0, -0.35, -0.7]
-const ROW_SCALE: Array[float] = [1.0, 0.86, 0.74]
+const ROW_SCALE: Array[float] = [1.0, 1.0, 1.0]
 
 const DESIGN_SIZE := Vector2(1920.0, 1080.0)
 const WORLD_VIEW_SIZE := Vector2(19.2, 10.8)
 const WORLD_PER_PIXEL_X := WORLD_VIEW_SIZE.x / DESIGN_SIZE.x
 const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
-const ORTHO_BASE_SIZE := WORLD_VIEW_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
-const CAMERA_START_POS := Vector3(0.0, 0.0, 11.6)
+const CAMERA_START_POS := Vector3(0.0, 0.0, 9.84)
 const CAMERA_START_ROT := Vector3(0.0, 0.0, 0.0)
 const CAMERA_DRAG_SENSITIVITY := 0.0035
-const CAMERA_ZOOM_STRENGTH := 6.5
 const CAMERA_MIN_Z := 2.0
 const CAMERA_MAX_Z := 30.0
 const STAR_LAYER_Z := -4.2
@@ -35,8 +33,8 @@ const VICTORY_POST_DELAY := 60.0 / 60.0
 const HOLD_ZOOM_SPEED := 0.45
 const HOLD_SPREAD_SPEED := 36.0
 const HOLD_VERTICAL_SPEED := 120.0
-const DEFAULT_DRAMATIC_ZOOM := 1.0
-const DEFAULT_HORIZONTAL_SPREAD := 0.0
+const DEFAULT_DRAMATIC_ZOOM := 3.5
+const DEFAULT_HORIZONTAL_SPREAD := -170.0
 const DEFAULT_VERTICAL_SPREAD := 0.0
 
 @export var dramatic_zoom: float = 1.35
@@ -48,10 +46,10 @@ const DEFAULT_VERTICAL_SPREAD := 0.0
 @onready var hero_root: Node3D = $Cards/HeroCards
 @onready var enemy_root: Node3D = $Cards/EnemyCards
 @onready var stars_root: Node3D = $Stars
-@onready var title_label: Label = $HUD/TitleLabel
-@onready var banner_label: Label = $HUD/BannerLabel
-@onready var debug_label: Label = $HUD/DebugLabel
-@onready var return_button: Button = $HUD/ReturnButton
+@onready var title_label: Label = get_node_or_null("HUD/TitleLabel") as Label
+@onready var banner_label: Label = get_node_or_null("HUD/BannerLabel") as Label
+@onready var debug_label: Label = get_node_or_null("HUD/DebugLabel") as Label
+@onready var return_button: Button = get_node_or_null("HUD/ReturnButton") as Button
 
 var card_mesh: QuadMesh
 var arcade_font: Font
@@ -133,8 +131,8 @@ func _ready():
 	_sync_all_cards()
 
 func _setup_3d_camera():
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = ORTHO_BASE_SIZE
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = 40.0
 	camera.near = 0.1
 	camera.far = 200.0
 	camera.position = CAMERA_START_POS
@@ -189,8 +187,11 @@ func _update_world_stars(delta: float):
 			n.position.y = randf_range(-5.1, 5.1)
 
 func _setup_overlay():
+	if return_button == null:
+		return
 	return_button.visible = false
-	return_button.pressed.connect(_return_to_mission_select)
+	if not return_button.pressed.is_connected(_return_to_mission_select):
+		return_button.pressed.connect(_return_to_mission_select)
 
 func _load_mission_state():
 	selected_heroes.clear()
@@ -377,8 +378,7 @@ func _update_runtime_tuning(delta: float):
 		vertical_spread += vertical_dir * HOLD_VERTICAL_SPEED * delta
 
 func _update_camera_transform():
-	var zoom_scale: float = maxf(0.05, dramatic_zoom)
-	camera.size = ORTHO_BASE_SIZE / zoom_scale
+	# Keep camera position stable; depth drama is expressed by row Z offsets in perspective.
 	camera.position = CAMERA_START_POS
 	camera.rotation = camera_rotation
 
@@ -544,10 +544,15 @@ func _project_world_point(source: Vector3, side_sign: float) -> Vector3:
 	var rel_to_center: float = source.y - center_anchor_y
 	var half_height: float = WORLD_VIEW_SIZE.y * 0.5
 	var vertical_factor: float = spread_world_y / maxf(0.001, half_height)
+	# Depth drama: anchor the furthest-back row and move only nearer rows toward camera.
+	var back_row_z: float = ROW_Z[ROWS_PER_COLUMN - 1]
+	var depth_offset: float = source.z - back_row_z
+	var depth_scale: float = maxf(0.0, dramatic_zoom)
+	var adjusted_z: float = back_row_z + (depth_offset * depth_scale)
 	return Vector3(
 		source.x + (spread_world_x * side_sign),
 		source.y + (rel_to_center * vertical_factor),
-		source.z
+		adjusted_z
 	)
 
 func _update_battle_timeline(delta: float):
@@ -685,22 +690,27 @@ func _apply_level_up_rewards():
 	GameState.arrayMissions[GameState.intMissionSelected] = null
 
 func _update_overlay():
-	title_label.text = "BATTLE"
+	if title_label != null:
+		title_label.text = "BATTLE"
 
-	if not battle_started:
-		banner_label.text = "LEFT CLICK TO START"
-		banner_label.modulate = Color(1.0, 0.95, 0.35)
-	elif not battle_finished:
-		banner_label.text = "RESOLVING..."
-		banner_label.modulate = Color.WHITE
-	else:
-		banner_label.text = "VICTORY" if win_flag else "DEFEAT"
-		banner_label.modulate = Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
+	if banner_label != null:
+		if not battle_started:
+			banner_label.text = "LEFT CLICK TO START"
+			banner_label.modulate = Color(1.0, 0.95, 0.35)
+		elif not battle_finished:
+			banner_label.text = "RESOLVING..."
+			banner_label.modulate = Color.WHITE
+		else:
+			banner_label.text = "VICTORY" if win_flag else "DEFEAT"
+			banner_label.modulate = Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
 
-	debug_label.text = "Zoom: %.2f\nHorizontal Spread: %.1f\nVertical Spread: %.1f" % [dramatic_zoom, horizontal_spread, vertical_spread]
-	debug_label.visible = show_perspective_debug
-	return_button.visible = return_visible
-	return_button.disabled = not return_visible
+	if debug_label != null:
+		debug_label.text = "Depth Drama: %.2f\nHorizontal Spread: %.1f\nVertical Spread: %.1f" % [dramatic_zoom, horizontal_spread, vertical_spread]
+		debug_label.visible = show_perspective_debug
+
+	if return_button != null:
+		return_button.visible = return_visible
+		return_button.disabled = not return_visible
 
 func _setup_ambient_fx():
 	pass
