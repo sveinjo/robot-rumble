@@ -4,7 +4,7 @@ const SIDE_COLUMNS := 2
 const ROWS_PER_COLUMN := 3
 const LEFT_COLUMN_X_SCREEN: Array[float] = [320.0, 560.0]
 const RIGHT_COLUMN_X_SCREEN: Array[float] = [1600.0, 1360.0]
-const ROW_Y_SCREEN: Array[float] = [650.0, 560.0, 485.0]
+const ROW_Y_SCREEN: Array[float] = [591.0, 516.0, 441.0]
 const ROW_X_TO_CENTER_SHIFT_SCREEN: Array[float] = [55.0, 55.0, 55.0]
 const ROW_Z: Array[float] = [0.0, -0.35, -0.7]
 const ROW_SCALE: Array[float] = [1.0, 1.0, 1.0]
@@ -35,7 +35,7 @@ const HOLD_SPREAD_SPEED := 36.0
 const HOLD_VERTICAL_SPEED := 120.0
 const DEFAULT_DRAMATIC_ZOOM := 3.5
 const DEFAULT_HORIZONTAL_SPREAD := -170.0
-const DEFAULT_VERTICAL_SPREAD := 0.0
+const DEFAULT_VERTICAL_SPREAD := 500.0
 
 @export var dramatic_zoom: float = 1.35
 @export var horizontal_spread: float = 0.0
@@ -188,10 +188,15 @@ func _update_world_stars(delta: float):
 
 func _setup_overlay():
 	if return_button == null:
-		return
-	return_button.visible = false
-	if not return_button.pressed.is_connected(_return_to_mission_select):
-		return_button.pressed.connect(_return_to_mission_select)
+		pass
+	else:
+		return_button.visible = false
+		if not return_button.pressed.is_connected(_return_to_mission_select):
+			return_button.pressed.connect(_return_to_mission_select)
+
+	if debug_label != null:
+		debug_label.visible = true
+		debug_label.modulate = Color(1.0, 0.92, 0.45, 0.95)
 
 func _load_mission_state():
 	selected_heroes.clear()
@@ -705,7 +710,12 @@ func _update_overlay():
 			banner_label.modulate = Color(0.2, 1.0, 0.2) if win_flag else Color(1.0, 0.2, 0.2)
 
 	if debug_label != null:
-		debug_label.text = "Depth Drama: %.2f\nHorizontal Spread: %.1f\nVertical Spread: %.1f" % [dramatic_zoom, horizontal_spread, vertical_spread]
+		var star_info := ""
+		if GameState.has_node("/root/StarfieldManager"):
+			var counts: Dictionary = GameState.get_node("/root/StarfieldManager").get_star_type_counts()
+			star_info = "\nStars F/M/S: %d/%d/%d  Total:%d" % [int(counts.get("fast", 0)), int(counts.get("mid", 0)), int(counts.get("slow", 0)), int(counts.get("total", 0))]
+
+		debug_label.text = "Depth Drama: %.2f (PageUp/PageDown)\nHorizontal Spread: %.1f (Left/Right)\nVertical Spread: %.1f (Up/Down)%s\nRMB drag: orbit  Home: reset" % [dramatic_zoom, horizontal_spread, vertical_spread, star_info]
 		debug_label.visible = show_perspective_debug
 
 	if return_button != null:
