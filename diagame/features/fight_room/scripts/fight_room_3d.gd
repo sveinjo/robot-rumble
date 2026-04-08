@@ -15,6 +15,10 @@ const WORLD_PER_PIXEL_X := WORLD_VIEW_SIZE.x / DESIGN_SIZE.x
 const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
+const CARD_FRAME_TEXTURE_PATH := "res://assets/sprites/Frame_0.png"
+const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame.png"
+const CARD_FRAME_INNER_HEIGHT_RATIO := 0.75
+const CARD_FRAME_DEPTH_OFFSET := 0.018
 const CAMERA_START_POS := Vector3(0.0, 0.0, 9.84)
 const CAMERA_START_ROT := Vector3(0.0, 0.0, 0.0)
 const CAMERA_DRAG_SENSITIVITY := 0.0035
@@ -61,9 +65,11 @@ const SSAA_SAMPLE_ALPHA := 0.25
 @onready var return_button: Button = get_node_or_null("HUD/ReturnButton") as Button
 
 var card_mesh: QuadMesh
+var frame_mesh_size: Vector2 = CARD_WORLD_SIZE
 var arcade_font: Font
 var flare_texture: Texture2D
 var next_button_texture: Texture2D
+var frame_texture: Texture2D
 var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var star_materials: Array[StandardMaterial3D] = []
@@ -113,6 +119,8 @@ func _ready():
 
 	card_mesh = QuadMesh.new()
 	card_mesh.size = CARD_WORLD_SIZE
+	frame_texture = _load_frame_texture()
+	frame_mesh_size = _compute_frame_mesh_size(frame_texture)
 
 	_setup_3d_camera()
 	_load_mission_state()
@@ -269,7 +277,9 @@ func _build_fighter_lines():
 		for col in range(SIDE_COLUMNS):
 			var base := _make_base_position(true, col, row)
 			var card := _create_card_node(hero_textures.get(hero_id, null), "Hero_%d_%d" % [row, col])
+			var frame := _create_frame_node("HeroFrame_%d_%d" % [row, col])
 			hero_root.add_child(card)
+			hero_root.add_child(frame)
 			var ssaa_nodes: Array[MeshInstance3D] = _create_ssaa_nodes(hero_textures.get(hero_id, null), "Hero_%d_%d" % [row, col], hero_root)
 			left_fighters.append({
 				"hero_id": hero_id,
@@ -284,6 +294,7 @@ func _build_fighter_lines():
 				"attack_dir": 1,
 				"visible": true,
 				"node": card,
+				"frame_node": frame,
 				"card_scale": ROW_SCALE[row],
 				"side_sign": -1.0,
 				"depth": row + (col * 0.02),
@@ -304,7 +315,9 @@ func _build_fighter_lines():
 		for col in range(SIDE_COLUMNS):
 			var base := _make_base_position(false, col, row)
 			var card := _create_card_node(enemy_textures.get(enemy_id, null), "Enemy_%d_%d" % [row, col])
+			var frame := _create_frame_node("EnemyFrame_%d_%d" % [row, col])
 			enemy_root.add_child(card)
+			enemy_root.add_child(frame)
 			var ssaa_nodes: Array[MeshInstance3D] = _create_ssaa_nodes(enemy_textures.get(enemy_id, null), "Enemy_%d_%d" % [row, col], enemy_root)
 			right_fighters.append({
 				"enemy_id": enemy_id,
@@ -317,6 +330,7 @@ func _build_fighter_lines():
 				"attack_dir": -1,
 				"visible": true,
 				"node": card,
+				"frame_node": frame,
 				"card_scale": ROW_SCALE[row],
 				"side_sign": 1.0,
 				"depth": row + (col * 0.02),
@@ -344,6 +358,16 @@ func _create_card_node(texture: Texture2D, node_name: String) -> MeshInstance3D:
 	card.material_override = _make_card_material(texture)
 	return card
 
+func _create_frame_node(node_name: String) -> MeshInstance3D:
+	var frame := MeshInstance3D.new()
+	frame.name = node_name
+	var frame_mesh := QuadMesh.new()
+	frame_mesh.size = frame_mesh_size
+	frame.mesh = frame_mesh
+	frame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	frame.material_override = _make_frame_material(frame_texture)
+	return frame
+
 func _create_ssaa_nodes(texture: Texture2D, node_prefix: String, parent: Node3D) -> Array[MeshInstance3D]:
 	var nodes: Array[MeshInstance3D] = []
 	for i in range(SSAA_SAMPLE_OFFSETS.size()):
@@ -354,6 +378,15 @@ func _create_ssaa_nodes(texture: Texture2D, node_prefix: String, parent: Node3D)
 	return nodes
 
 func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_BACK
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	material.albedo_texture = texture
+	return material
+
+func _make_frame_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_BACK
@@ -409,6 +442,25 @@ func _resolve_hq_texture_path(texture_path: String) -> String:
 			return candidate
 
 	return ""
+
+func _load_frame_texture() -> Texture2D:
+	if ResourceLoader.exists(CARD_FRAME_HQ_TEXTURE_PATH):
+		return load(CARD_FRAME_HQ_TEXTURE_PATH)
+	if ResourceLoader.exists(CARD_FRAME_TEXTURE_PATH):
+		return load(CARD_FRAME_TEXTURE_PATH)
+	return null
+
+func _compute_frame_mesh_size(texture: Texture2D) -> Vector2:
+	if texture == null:
+		return CARD_WORLD_SIZE
+
+	var tex_size: Vector2 = texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
+		return CARD_WORLD_SIZE
+
+	var aspect: float = tex_size.x / tex_size.y
+	var frame_height: float = CARD_WORLD_SIZE.y / maxf(0.01, CARD_FRAME_INNER_HEIGHT_RATIO)
+	return Vector2(frame_height * aspect, frame_height)
 
 func _process(delta: float):
 	_update_runtime_tuning(delta)
@@ -639,6 +691,18 @@ func _sync_card(entry: Dictionary):
 		node.material_override = tmp
 	# Keep all cards at a consistent non-billboard angle.
 	node.rotation = Vector3.ZERO
+
+	var frame_node: MeshInstance3D = entry.get("frame_node", null)
+	if frame_node != null:
+		frame_node.position = pos + Vector3(0.0, 0.0, CARD_FRAME_DEPTH_OFFSET)
+		frame_node.scale = Vector3.ONE * scale_factor
+		frame_node.visible = bool(entry.get("visible", true))
+		frame_node.rotation = Vector3.ZERO
+		if frame_node.material_override is StandardMaterial3D:
+			var frame_material: StandardMaterial3D = frame_node.material_override
+			var frame_color: Color = frame_material.albedo_color
+			frame_color.a = _alpha
+			frame_material.albedo_color = frame_color
 
 	var ssaa_nodes: Array = entry.get("ssaa_nodes", [])
 	for i in range(ssaa_nodes.size()):
