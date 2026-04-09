@@ -32,124 +32,116 @@ cull_mode = 2
 shading_mode = 0
 albedo_color = Color(1, 0.76, 0.76, 0.65)
 
-[node name="FightRoom3D" type="Node3D"]
+[node name="FightRoom3D" type="Node3D" unique_id=272351531]
 script = ExtResource("1_script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=534942516]
 environment = SubResource("Environment_1")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-35, -30, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=860586863]
+transform = Transform3D(0.8660254, 0.28678823, -0.40957603, 0, 0.81915206, 0.57357645, 0.5, -0.49673176, 0.7094065, 0, 0, 0)
 light_energy = 1.8
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1488461801]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.6)
 projection = 1
 current = true
 
-[node name="Backdrop" type="MeshInstance3D" parent="."]
+[node name="Backdrop" type="MeshInstance3D" parent="." unique_id=1628038263]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
 mesh = SubResource("QuadMesh_Backdrop")
 surface_material_override/0 = SubResource("StandardMaterial3D_Backdrop")
 
-[node name="Cards" type="Node3D" parent="."]
+[node name="Cards" type="Node3D" parent="." unique_id=547160898]
 
-[node name="HeroCards" type="Node3D" parent="Cards"]
+[node name="HeroCards" type="Node3D" parent="Cards" unique_id=1926107446]
 
-[node name="HeroProxy_0_0" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-5.85, -0.07, 0)
+[node name="HeroProxy_0_0" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=203611389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.85, -0.07, 0)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="HeroProxy_1_0" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-5.85, 0.68, -0.35)
-scale = Vector3(1, 1, 1)
+[node name="HeroProxy_1_0" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=827410300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.85, 0.68, -0.35)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="HeroProxy_2_0" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-5.85, 1.43, -0.7)
-scale = Vector3(1, 1, 1)
+[node name="HeroProxy_2_0" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=1111379514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.85, 1.43, -0.7)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="HeroProxy_0_1" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-3.45, -0.07, 0)
+[node name="HeroProxy_0_1" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=1297697327]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.45, -0.07, 0)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="HeroProxy_1_1" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-3.45, 0.68, -0.35)
-scale = Vector3(1, 1, 1)
+[node name="HeroProxy_1_1" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=15419782]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.45, 0.68, -0.35)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="HeroProxy_2_1" type="MeshInstance3D" parent="Cards/HeroCards"]
-position = Vector3(-3.45, 1.43, -0.7)
-scale = Vector3(1, 1, 1)
+[node name="HeroProxy_2_1" type="MeshInstance3D" parent="Cards/HeroCards" unique_id=1729452566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.45, 1.43, -0.7)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_HeroProxy")
 
-[node name="EnemyCards" type="Node3D" parent="Cards"]
+[node name="EnemyCards" type="Node3D" parent="Cards" unique_id=1124235120]
 
-[node name="EnemyProxy_0_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(5.85, -0.07, 0)
+[node name="EnemyProxy_0_0" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=944346064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, -0.07, 0)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="EnemyProxy_1_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(5.85, 0.68, -0.35)
-scale = Vector3(1, 1, 1)
+[node name="EnemyProxy_1_0" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=721917772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, 0.68, -0.35)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="EnemyProxy_2_0" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(5.85, 1.43, -0.7)
-scale = Vector3(1, 1, 1)
+[node name="EnemyProxy_2_0" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=455827631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.85, 1.43, -0.7)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="EnemyProxy_0_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(3.45, -0.07, 0)
+[node name="EnemyProxy_0_1" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=1024296181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.45, -0.07, 0)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="EnemyProxy_1_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(3.45, 0.68, -0.35)
-scale = Vector3(1, 1, 1)
+[node name="EnemyProxy_1_1" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=388232171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.45, 0.68, -0.35)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="EnemyProxy_2_1" type="MeshInstance3D" parent="Cards/EnemyCards"]
-position = Vector3(3.45, 1.43, -0.7)
-scale = Vector3(1, 1, 1)
+[node name="EnemyProxy_2_1" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=595393317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.45, 1.43, -0.7)
 mesh = SubResource("QuadMesh_CardProxy")
 surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
-[node name="Stars" type="Node3D" parent="."]
+[node name="Stars" type="Node3D" parent="." unique_id=1516789329]
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=705593816]
 layer = 10
 
-[node name="TitleLabel" type="Label" parent="HUD"]
+[node name="TitleLabel" type="Label" parent="HUD" unique_id=184317455]
 offset_left = 32.0
 offset_top = 24.0
 text = "BATTLE"
 
-[node name="BannerLabel" type="Label" parent="HUD"]
+[node name="BannerLabel" type="Label" parent="HUD" unique_id=538329231]
 offset_left = 760.0
 offset_top = 96.0
 text = "LEFT CLICK TO START"
 
-[node name="DebugLabel" type="Label" parent="HUD"]
+[node name="DebugLabel" type="Label" parent="HUD" unique_id=1412696208]
 offset_left = 32.0
 offset_top = 126.0
 text = "Depth Drama: 3.50"
 
-[node name="ReturnButton" type="Button" parent="HUD"]
+[node name="ReturnButton" type="Button" parent="HUD" unique_id=263621637]
+visible = false
 offset_left = 1540.0
 offset_top = 760.0
 offset_right = 1900.0
 offset_bottom = 840.0
 text = "RETURN"
-visible = false

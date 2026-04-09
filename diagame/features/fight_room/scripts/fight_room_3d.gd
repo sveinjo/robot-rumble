@@ -16,9 +16,11 @@ const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
 const CARD_FRAME_TEXTURE_PATH := "res://assets/sprites/Frame_0.png"
-const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame.png"
+const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame2.png"
 const CARD_FRAME_INNER_HEIGHT_RATIO := 0.75
 const CARD_FRAME_DEPTH_OFFSET := 0.018
+const DEPTH_MIN_BRIGHTNESS := 0.55
+const DEPTH_MAX_BRIGHTNESS := 1.0
 const CAMERA_START_POS := Vector3(0.0, 0.0, 9.84)
 const CAMERA_START_ROT := Vector3(0.0, 0.0, 0.0)
 const CAMERA_DRAG_SENSITIVITY := 0.0035
@@ -443,6 +445,15 @@ func _resolve_hq_texture_path(texture_path: String) -> String:
 
 	return ""
 
+func _calculate_card_brightness(z_depth: float) -> float:
+	var back_row_z: float = ROW_Z[ROWS_PER_COLUMN - 1]
+	var front_row_z: float = ROW_Z[0]
+	var z_range: float = front_row_z - back_row_z
+	if z_range <= 0.0:
+		return DEPTH_MAX_BRIGHTNESS
+	var normalized: float = clamp((z_depth - back_row_z) / z_range, 0.0, 1.0)
+	return lerp(DEPTH_MIN_BRIGHTNESS, DEPTH_MAX_BRIGHTNESS, normalized)
+
 func _load_frame_texture() -> Texture2D:
 	if ResourceLoader.exists(CARD_FRAME_HQ_TEXTURE_PATH):
 		return load(CARD_FRAME_HQ_TEXTURE_PATH)
@@ -680,14 +691,13 @@ func _sync_card(entry: Dictionary):
 	node.scale = Vector3.ONE * scale_factor
 	node.visible = bool(entry.get("visible", true))
 	var _alpha: float = float(entry.get("alpha", 1.0))
+	var brightness: float = _calculate_card_brightness(pos.z)
 	var mat := node.material_override
 	if mat != null and mat is StandardMaterial3D:
-		var col: Color = mat.albedo_color
-		col.a = _alpha
-		mat.albedo_color = col
+		mat.albedo_color = Color(brightness, brightness, brightness, _alpha)
 	else:
 		var tmp := _make_card_material(null)
-		tmp.albedo_color = Color(1.0, 1.0, 1.0, _alpha)
+		tmp.albedo_color = Color(brightness, brightness, brightness, _alpha)
 		node.material_override = tmp
 	# Keep all cards at a consistent non-billboard angle.
 	node.rotation = Vector3.ZERO
@@ -700,9 +710,7 @@ func _sync_card(entry: Dictionary):
 		frame_node.rotation = Vector3.ZERO
 		if frame_node.material_override is StandardMaterial3D:
 			var frame_material: StandardMaterial3D = frame_node.material_override
-			var frame_color: Color = frame_material.albedo_color
-			frame_color.a = _alpha
-			frame_material.albedo_color = frame_color
+			frame_material.albedo_color = Color(brightness, brightness, brightness, _alpha)
 
 	var ssaa_nodes: Array = entry.get("ssaa_nodes", [])
 	for i in range(ssaa_nodes.size()):
@@ -716,9 +724,8 @@ func _sync_card(entry: Dictionary):
 		if sample_node.material_override is StandardMaterial3D:
 			var sample_material: StandardMaterial3D = sample_node.material_override
 			sample_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-			var sample_color: Color = sample_material.albedo_color
-			sample_color.a = SSAA_SAMPLE_ALPHA if aa_mode == AA_MODE_POINT_SSAA else _alpha
-			sample_material.albedo_color = sample_color
+			var sample_alpha: float = SSAA_SAMPLE_ALPHA if aa_mode == AA_MODE_POINT_SSAA else _alpha
+			sample_material.albedo_color = Color(brightness, brightness, brightness, sample_alpha)
 		if aa_mode == AA_MODE_POINT_SSAA:
 			sample_node.visible = bool(entry.get("visible", true))
 
