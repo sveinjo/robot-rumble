@@ -16,7 +16,7 @@ const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
 const CARD_FRAME_TEXTURE_PATH := "res://assets/sprites/Frame_0.png"
-const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame.png"
+const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame3.png"
 const CARD_FRAME_INNER_HEIGHT_RATIO := 0.75
 const CARD_FRAME_DEPTH_OFFSET := 0.018
 const CARD_SHADOW_MODEL_Z_OFFSET := -0.015
@@ -52,14 +52,20 @@ const HOLD_ZOOM_SPEED := 0.45
 const HOLD_SPREAD_SPEED := 36.0
 const HOLD_VERTICAL_SPEED := 120.0
 const LIGHT_MOVE_SPEED := 0.05
+const FRONT_LIGHT_LEFT_BASE_X := -4.5
+const FRONT_LIGHT_RIGHT_BASE_X := 4.5
 const FRONT_LIGHT_BASE_Y := -3.75
 const FRONT_LIGHT_BASE_Z := 5.20
+const FRONT_LIGHT_SWAP_PERIOD := 8.0
 const DEFAULT_DRAMATIC_ZOOM := 3.4
 const DEFAULT_HORIZONTAL_SPREAD := -182.0
 const DEFAULT_VERTICAL_SPREAD := 270.0
 const AA_MODE_LINEAR := 0
 const AA_MODE_POINT_SSAA := 1
 const AA_MODE_NEAREST_NO_AA := 2
+const AA_MODE_NEAREST_MIPMAP := 3
+const AA_MODE_NEAREST_SSAA := 4
+const AA_MODE_BILINEAR_NO_AA := 5
 const SSAA_SAMPLE_OFFSETS: Array[Vector2] = [
 	Vector2(-0.25, -0.25),
 	Vector2(0.25, -0.25),
@@ -96,9 +102,10 @@ var star_materials: Array[StandardMaterial3D] = []
 var star_spawn_half_extents: Vector2 = Vector2(11.2, 5.1)
 var star_global_scale: float = 1.0
 var star_auto_scale: float = 1.0
-var aa_mode: int = AA_MODE_LINEAR
+var aa_mode: int = AA_MODE_BILINEAR_NO_AA
 var light_y_offset: float = 0.0
 var light_z_offset: float = 0.0
+var light_swap_time: float = 0.0
 var center_card_model: Node3D
 var card_model_scene: PackedScene
 
@@ -681,6 +688,7 @@ func _compute_frame_mesh_size(texture: Texture2D) -> Vector2:
 	return Vector2(frame_height * aspect, frame_height)
 
 func _process(delta: float):
+	light_swap_time = fposmod(light_swap_time + delta, FRONT_LIGHT_SWAP_PERIOD)
 	_update_runtime_tuning(delta)
 	_update_battle_timeline(delta)
 	_update_camera_transform()
@@ -718,14 +726,22 @@ func _update_camera_transform():
 	# Keep camera position stable; depth drama is expressed by row Z offsets in perspective.
 	camera.position = CAMERA_START_POS
 	camera.rotation = camera_rotation
+
+	var light_center_x: float = (FRONT_LIGHT_LEFT_BASE_X + FRONT_LIGHT_RIGHT_BASE_X) * 0.5
+	var light_amplitude: float = (FRONT_LIGHT_RIGHT_BASE_X - FRONT_LIGHT_LEFT_BASE_X) * 0.5
+	var light_phase: float = TAU * (light_swap_time / maxf(0.001, FRONT_LIGHT_SWAP_PERIOD))
+	var left_x: float = light_center_x - (cos(light_phase) * light_amplitude)
+	var right_x: float = light_center_x + (cos(light_phase) * light_amplitude)
 	
 	if front_light_left != null:
 		var left_pos: Vector3 = front_light_left.position
+		left_pos.x = left_x
 		left_pos.y = FRONT_LIGHT_BASE_Y + light_y_offset
 		left_pos.z = FRONT_LIGHT_BASE_Z + light_z_offset
 		front_light_left.position = left_pos
 	if front_light_right != null:
 		var right_pos: Vector3 = front_light_right.position
+		right_pos.x = right_x
 		right_pos.y = FRONT_LIGHT_BASE_Y + light_y_offset
 		right_pos.z = FRONT_LIGHT_BASE_Z + light_z_offset
 		front_light_right.position = right_pos
@@ -791,9 +807,10 @@ func _reset_to_defaults():
 	dramatic_zoom = DEFAULT_DRAMATIC_ZOOM
 	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
 	vertical_spread = DEFAULT_VERTICAL_SPREAD
-	aa_mode = AA_MODE_LINEAR
+	aa_mode = AA_MODE_BILINEAR_NO_AA
 	light_y_offset = 0.0
 	light_z_offset = 0.0
+	light_swap_time = 0.0
 	star_global_scale = star_auto_scale
 	_recenter_camera_angle()
 	camera_drag_active = false
@@ -803,7 +820,7 @@ func _reset_to_defaults():
 	_update_overlay()
 
 func _toggle_aa_mode():
-	aa_mode = (aa_mode + 1) % 3
+	aa_mode = (aa_mode + 1) % 6
 	_apply_viewport_aa_mode()
 	_apply_aa_mode_to_all_cards()
 	_update_overlay()
@@ -813,7 +830,7 @@ func _apply_viewport_aa_mode():
 	if viewport == null:
 		return
 
-	if aa_mode == AA_MODE_NEAREST_NO_AA:
+	if aa_mode == AA_MODE_NEAREST_NO_AA or aa_mode == AA_MODE_NEAREST_SSAA or aa_mode == AA_MODE_BILINEAR_NO_AA:
 		viewport.msaa_3d = Viewport.MSAA_DISABLED
 		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 	else:
@@ -835,6 +852,10 @@ func _apply_aa_mode_to_card(entry: Dictionary):
 		var material: StandardMaterial3D = node.material_override
 		if aa_mode == AA_MODE_LINEAR:
 			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		elif aa_mode == AA_MODE_BILINEAR_NO_AA:
+			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+		elif aa_mode == AA_MODE_NEAREST_MIPMAP:
+			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 		else:
 			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 
@@ -843,7 +864,7 @@ func _apply_aa_mode_to_card(entry: Dictionary):
 		for sample_node in ssaa_nodes:
 			if sample_node is MeshInstance3D:
 				sample_node.visible = false
-	elif aa_mode == AA_MODE_POINT_SSAA:
+	elif aa_mode == AA_MODE_POINT_SSAA or aa_mode == AA_MODE_NEAREST_SSAA:
 		node.visible = false
 		for sample_node in ssaa_nodes:
 			if sample_node is MeshInstance3D:
@@ -1181,6 +1202,12 @@ func _update_overlay():
 			aa_label = "Point + Manual SSAA"
 		elif aa_mode == AA_MODE_NEAREST_NO_AA:
 			aa_label = "Nearest + No AA"
+		elif aa_mode == AA_MODE_NEAREST_MIPMAP:
+			aa_label = "Nearest + Mipmapping"
+		elif aa_mode == AA_MODE_NEAREST_SSAA:
+			aa_label = "Nearest + SSAA"
+		elif aa_mode == AA_MODE_BILINEAR_NO_AA:
+			aa_label = "Bilinear + No AA"
 		var light_info := ""
 		if front_light_left != null:
 			light_info = "\nFront Lights Y/Z: %.2f / %.2f (Numpad 8/5, Insert/Delete)" % [front_light_left.position.y, front_light_left.position.z]

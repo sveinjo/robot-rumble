@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uj5ep74eerwd"
-path="res://.godot/imported/chronomancer_old.png-a96b239d3b7ea60e667d89056c7db0f6.ctex"
+uid="uid://db6p15x4u365b"
+path="res://.godot/imported/Frame3.png-0560f21de93e1005f2bf33073513c519.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/HQ/chronomancer_old.png"
-dest_files=["res://.godot/imported/chronomancer_old.png-a96b239d3b7ea60e667d89056c7db0f6.ctex"]
+source_file="res://assets/sprites/HQ/Frame3.png"
+dest_files=["res://.godot/imported/Frame3.png-0560f21de93e1005f2bf33073513c519.ctex"]
 
 [params]
 
