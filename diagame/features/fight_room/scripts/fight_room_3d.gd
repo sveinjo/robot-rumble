@@ -16,7 +16,7 @@ const WORLD_PER_PIXEL_Y := WORLD_VIEW_SIZE.y / DESIGN_SIZE.y
 
 const CARD_WORLD_SIZE := Vector2(1.76, 1.76)
 const CARD_FRAME_TEXTURE_PATH := "res://assets/sprites/Frame_0.png"
-const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame2.png"
+const CARD_FRAME_HQ_TEXTURE_PATH := "res://assets/sprites/HQ/Frame.png"
 const CARD_FRAME_INNER_HEIGHT_RATIO := 0.75
 const CARD_FRAME_DEPTH_OFFSET := 0.018
 const DEPTH_MIN_BRIGHTNESS := 0.55
@@ -39,6 +39,9 @@ const VICTORY_POST_DELAY := 60.0 / 60.0
 const HOLD_ZOOM_SPEED := 0.45
 const HOLD_SPREAD_SPEED := 36.0
 const HOLD_VERTICAL_SPEED := 120.0
+const LIGHT_MOVE_SPEED := 0.05
+const FRONT_LIGHT_BASE_Y := 0.8
+const FRONT_LIGHT_BASE_Z := 2.0
 const DEFAULT_DRAMATIC_ZOOM := 3.4
 const DEFAULT_HORIZONTAL_SPREAD := -182.0
 const DEFAULT_VERTICAL_SPREAD := 270.0
@@ -65,8 +68,10 @@ const SSAA_SAMPLE_ALPHA := 0.25
 @onready var banner_label: Label = get_node_or_null("HUD/BannerLabel") as Label
 @onready var debug_label: Label = get_node_or_null("HUD/DebugLabel") as Label
 @onready var return_button: Button = get_node_or_null("HUD/ReturnButton") as Button
+@onready var front_light_left: OmniLight3D = get_node_or_null("FrontRowLightLeft") as OmniLight3D
+@onready var front_light_right: OmniLight3D = get_node_or_null("FrontRowLightRight") as OmniLight3D
 
-var card_mesh: QuadMesh
+var card_mesh: Mesh
 var frame_mesh_size: Vector2 = CARD_WORLD_SIZE
 var arcade_font: Font
 var flare_texture: Texture2D
@@ -76,6 +81,8 @@ var hero_textures: Dictionary = {}
 var enemy_textures: Dictionary = {}
 var star_materials: Array[StandardMaterial3D] = []
 var aa_mode: int = AA_MODE_LINEAR
+var light_y_offset: float = 0.0
+var light_z_offset: float = 0.0
 
 var selected_heroes: Array[int] = []
 var mission_enemies: Array[int] = []
@@ -383,7 +390,7 @@ func _make_card_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_BACK
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.albedo_texture = texture
 	return material
@@ -392,7 +399,7 @@ func _make_frame_material(texture: Texture2D) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_BACK
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.albedo_texture = texture
 	return material
@@ -511,6 +518,17 @@ func _update_camera_transform():
 	# Keep camera position stable; depth drama is expressed by row Z offsets in perspective.
 	camera.position = CAMERA_START_POS
 	camera.rotation = camera_rotation
+	
+	if front_light_left != null:
+		var left_pos: Vector3 = front_light_left.position
+		left_pos.y = FRONT_LIGHT_BASE_Y + light_y_offset
+		left_pos.z = FRONT_LIGHT_BASE_Z + light_z_offset
+		front_light_left.position = left_pos
+	if front_light_right != null:
+		var right_pos: Vector3 = front_light_right.position
+		right_pos.y = FRONT_LIGHT_BASE_Y + light_y_offset
+		right_pos.z = FRONT_LIGHT_BASE_Z + light_z_offset
+		front_light_right.position = right_pos
 
 func _input(event: InputEvent):
 	if event is InputEventMouseButton:
@@ -536,16 +554,29 @@ func _input(event: InputEvent):
 
 	if event is InputEventKey:
 		var key_event: InputEventKey = event
-		if key_event.pressed and key_event.keycode == KEY_TAB:
-			_toggle_aa_mode()
-			return
-		if key_event.pressed and key_event.keycode == KEY_HOME:
-			_reset_to_defaults()
-			return
-		if key_event.pressed and key_event.keycode == KEY_ESCAPE and camera_drag_active:
-			camera_drag_active = false
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			return
+		if key_event.pressed:
+			if key_event.keycode == KEY_TAB:
+				_toggle_aa_mode()
+				return
+			if key_event.keycode == KEY_HOME:
+				_reset_to_defaults()
+				return
+			if key_event.keycode == KEY_ESCAPE and camera_drag_active:
+				camera_drag_active = false
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+				return
+			if key_event.keycode == KEY_KP_8:
+				light_y_offset += LIGHT_MOVE_SPEED
+				return
+			if key_event.keycode == KEY_KP_5:
+				light_y_offset -= LIGHT_MOVE_SPEED
+				return
+			if key_event.keycode == KEY_INSERT:
+				light_z_offset += LIGHT_MOVE_SPEED
+				return
+			if key_event.keycode == KEY_DELETE:
+				light_z_offset -= LIGHT_MOVE_SPEED
+				return
 
 func _recenter_camera_angle():
 	camera_rotation = CAMERA_START_ROT
@@ -555,6 +586,8 @@ func _reset_to_defaults():
 	horizontal_spread = DEFAULT_HORIZONTAL_SPREAD
 	vertical_spread = DEFAULT_VERTICAL_SPREAD
 	aa_mode = AA_MODE_LINEAR
+	light_y_offset = 0.0
+	light_z_offset = 0.0
 	_recenter_camera_angle()
 	camera_drag_active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -691,13 +724,14 @@ func _sync_card(entry: Dictionary):
 	node.scale = Vector3.ONE * scale_factor
 	node.visible = bool(entry.get("visible", true))
 	var _alpha: float = float(entry.get("alpha", 1.0))
-	var brightness: float = _calculate_card_brightness(pos.z)
 	var mat := node.material_override
 	if mat != null and mat is StandardMaterial3D:
-		mat.albedo_color = Color(brightness, brightness, brightness, _alpha)
+		var col: Color = mat.albedo_color
+		col.a = _alpha
+		mat.albedo_color = col
 	else:
 		var tmp := _make_card_material(null)
-		tmp.albedo_color = Color(brightness, brightness, brightness, _alpha)
+		tmp.albedo_color = Color(1.0, 1.0, 1.0, _alpha)
 		node.material_override = tmp
 	# Keep all cards at a consistent non-billboard angle.
 	node.rotation = Vector3.ZERO
@@ -710,7 +744,9 @@ func _sync_card(entry: Dictionary):
 		frame_node.rotation = Vector3.ZERO
 		if frame_node.material_override is StandardMaterial3D:
 			var frame_material: StandardMaterial3D = frame_node.material_override
-			frame_material.albedo_color = Color(brightness, brightness, brightness, _alpha)
+			var frame_col: Color = frame_material.albedo_color
+			frame_col.a = _alpha
+			frame_material.albedo_color = frame_col
 
 	var ssaa_nodes: Array = entry.get("ssaa_nodes", [])
 	for i in range(ssaa_nodes.size()):
@@ -725,7 +761,9 @@ func _sync_card(entry: Dictionary):
 			var sample_material: StandardMaterial3D = sample_node.material_override
 			sample_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 			var sample_alpha: float = SSAA_SAMPLE_ALPHA if aa_mode == AA_MODE_POINT_SSAA else _alpha
-			sample_material.albedo_color = Color(brightness, brightness, brightness, sample_alpha)
+			var sample_col: Color = sample_material.albedo_color
+			sample_col.a = sample_alpha
+			sample_material.albedo_color = sample_col
 		if aa_mode == AA_MODE_POINT_SSAA:
 			sample_node.visible = bool(entry.get("visible", true))
 
@@ -903,8 +941,11 @@ func _update_overlay():
 			var counts: Dictionary = GameState.get_node("/root/StarfieldManager").get_star_type_counts()
 			star_info = "\nStars F/M/S: %d/%d/%d  Total:%d" % [int(counts.get("fast", 0)), int(counts.get("mid", 0)), int(counts.get("slow", 0)), int(counts.get("total", 0))]
 		var aa_label: String = "Linear + Mipmaps + AA" if aa_mode == AA_MODE_LINEAR else "Point + Manual SSAA"
+		var light_info := ""
+		if front_light_left != null:
+			light_info = "\nFront Lights Y/Z: %.2f / %.2f (Numpad 8/5, Insert/Delete)" % [front_light_left.position.y, front_light_left.position.z]
 
-		debug_label.text = "Depth Drama: %.2f (PageUp/PageDown)\nHorizontal Spread: %.1f (Left/Right)\nVertical Spread: %.1f (Up/Down)\nAA Mode: %s (Tab)%s\nRMB drag: orbit  Home: reset" % [dramatic_zoom, horizontal_spread, vertical_spread, aa_label, star_info]
+		debug_label.text = "Depth Drama: %.2f (PageUp/PageDown)\nHorizontal Spread: %.1f (Left/Right)\nVertical Spread: %.1f (Up/Down)\nAA Mode: %s (Tab)%s%s\nRMB drag: orbit  Home: reset" % [dramatic_zoom, horizontal_spread, vertical_spread, aa_label, light_info, star_info]
 		debug_label.visible = show_perspective_debug
 
 	if return_button != null:
