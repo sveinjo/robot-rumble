@@ -43,16 +43,16 @@ transform = Transform3D(0.8660254, 0.28678823, -0.40957603, 0, 0.81915206, 0.573
 light_energy = 1.8
 
 [node name="FrontRowLightLeft" type="OmniLight3D" parent="." unique_id=919784355]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.8, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, -3.75, 5.2)
 light_energy = 6.0
+shadow_enabled = true
 omni_range = 8.0
-shadow_enabled = false
 
 [node name="FrontRowLightRight" type="OmniLight3D" parent="." unique_id=1491787617]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0.8, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, -3.75, 5.2)
 light_energy = 6.0
+shadow_enabled = true
 omni_range = 8.0
-shadow_enabled = false
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1488461801]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.6)
@@ -127,8 +127,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
 
 [node name="EnemyProxy_2_1" type="MeshInstance3D" parent="Cards/EnemyCards" unique_id=595393317]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.45, 1.43, -0.7)
-mesh = SubResource("QuadMesh_CardProxy"))
-surface_material_override/0 = SubResource("StandardMaterial3D_EnemyProxy")
+mesh = SubResource("QuadMesh_CardProxy")
 
 [node name="Stars" type="Node3D" parent="." unique_id=1516789329]
 
