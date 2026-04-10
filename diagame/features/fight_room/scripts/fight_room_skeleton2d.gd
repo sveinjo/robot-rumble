@@ -54,7 +54,8 @@ func _ready() -> void:
 	if right_arm_bone != null:
 		_base_right_arm_rot = right_arm_bone.rotation
 	_bind_character_viewport_texture()
-	call_deferred("_play_editor_idle_animation")
+	if not Engine.is_editor_hint():
+		call_deferred("_play_editor_idle_animation")
 	_update_camera_transform()
 
 func _play_editor_idle_animation() -> void:
@@ -84,6 +85,8 @@ func _bind_character_viewport_texture() -> void:
 	std_mat.albedo_texture = character_viewport.get_texture()
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	character_root.position.y = BASE_CHARACTER_Y
 	_idle_time += delta
 	if idle_animation_player != null and idle_animation_player.has_animation("idle_exact") and not idle_animation_player.is_playing():

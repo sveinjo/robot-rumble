@@ -20,6 +20,12 @@ const DEMO_PLAYER_SCENE: PackedScene = preload("res://features/fight_room/resour
 @onready var chin_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/Chest/Head/Chin
 @onready var left_arm_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm
 @onready var right_arm_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm
+@onready var left_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/LeftLeg
+@onready var left_lower_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg
+@onready var left_foot_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg/LeftFoot
+@onready var right_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg
+@onready var right_lower_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg
+@onready var right_foot_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg/RightFoot
 
 var _idle_time := 0.0
 var _base_hip_pos := Vector2.ZERO
@@ -30,10 +36,23 @@ var _base_left_arm_rot := 0.0
 var _base_right_arm_rot := 0.0
 var _available_animations: Array[StringName] = []
 var _current_animation_index := -1
+var _animation_label: Label = null
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		set_process(false)
+		set_process_input(false)
+		if polygons_root != null:
+			polygons_root.visible = true
+			_ensure_weighted_mesh_links()
+		if idle_animation_player != null:
+			idle_animation_player.root_node = NodePath("..")
+			_import_demo_animations()
+		return
+
 	set_process(true)
 	set_process_input(true)
+	_ensure_animation_label()
 	if hip_bone != null:
 		_base_hip_pos = hip_bone.position
 	if chest_bone != null:
@@ -46,6 +65,7 @@ func _ready() -> void:
 		_base_left_arm_rot = left_arm_bone.rotation
 	if right_arm_bone != null:
 		_base_right_arm_rot = right_arm_bone.rotation
+	_normalize_leg_bone_scale()
 	if polygons_root != null:
 		polygons_root.visible = true
 		_ensure_weighted_mesh_links()
@@ -55,9 +75,13 @@ func _ready() -> void:
 		_play_start_animation()
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	_idle_time += delta
 	if idle_animation_player != null and _current_animation_index >= 0 and _current_animation_index < _available_animations.size() and not idle_animation_player.is_playing():
-		idle_animation_player.play(_available_animations[_current_animation_index])
+		var animation_name := _available_animations[_current_animation_index]
+		idle_animation_player.play(animation_name)
+		_set_animation_label(animation_name)
 
 func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
@@ -89,8 +113,10 @@ func _import_demo_animations() -> void:
 		if target_library.has_animation(animation_name):
 			target_library.remove_animation(animation_name)
 		target_library.add_animation(animation_name, copied_animation)
-		_available_animations.append(animation_name)
 	demo_instance.free()
+	_available_animations.clear()
+	for animation_name in idle_animation_player.get_animation_list():
+		_available_animations.append(animation_name)
 	_available_animations.sort()
 
 func _get_default_library(player: AnimationPlayer) -> AnimationLibrary:
@@ -114,7 +140,11 @@ func _get_or_create_default_library(player: AnimationPlayer) -> AnimationLibrary
 func _play_start_animation() -> void:
 	if idle_animation_player == null:
 		return
-	if idle_animation_player.has_animation(&"idle"):
+	if idle_animation_player.has_animation(&"walk"):
+		_current_animation_index = _available_animations.find(&"walk")
+		if _current_animation_index == -1:
+			_current_animation_index = 0
+	elif idle_animation_player.has_animation(&"idle"):
 		_current_animation_index = _available_animations.find(&"idle")
 		if _current_animation_index == -1:
 			_current_animation_index = 0
@@ -123,7 +153,9 @@ func _play_start_animation() -> void:
 	else:
 		_current_animation_index = -1
 	if _current_animation_index >= 0 and _current_animation_index < _available_animations.size():
-		idle_animation_player.play(_available_animations[_current_animation_index])
+		var animation_name := _available_animations[_current_animation_index]
+		idle_animation_player.play(animation_name)
+		_set_animation_label(animation_name)
 
 func _next_animation() -> void:
 	if idle_animation_player == null or _available_animations.is_empty():
@@ -131,7 +163,33 @@ func _next_animation() -> void:
 	_current_animation_index = (_current_animation_index + 1) % _available_animations.size()
 	var animation_name := _available_animations[_current_animation_index]
 	idle_animation_player.play(animation_name)
+	_set_animation_label(animation_name)
 	print("[fight_room_skeleton2d_direct] Animation: ", animation_name)
+
+func _ensure_animation_label() -> void:
+	if Engine.is_editor_hint():
+		return
+	var hud := get_node_or_null("AnimationHud") as CanvasLayer
+	if hud == null:
+		hud = CanvasLayer.new()
+		hud.name = "AnimationHud"
+		add_child(hud)
+	var label := hud.get_node_or_null("AnimationLabel") as Label
+	if label == null:
+		label = Label.new()
+		label.name = "AnimationLabel"
+		hud.add_child(label)
+		label.position = Vector2(12, 10)
+		label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+		label.add_theme_constant_override("outline_size", 2)
+	_animation_label = label
+	_set_animation_label(&"-")
+
+func _set_animation_label(animation_name: StringName) -> void:
+	if _animation_label == null:
+		return
+	_animation_label.text = "Animation: %s" % String(animation_name)
 
 func _ensure_weighted_mesh_links() -> void:
 	if skeleton_2d == null:
@@ -152,3 +210,17 @@ func _ensure_weighted_mesh_links() -> void:
 		mesh.texture = WEIGHTED_TEXTURE
 		mesh.modulate = Color(1, 1, 1, 1)
 		mesh.skeleton = mesh.get_path_to(skeleton_2d)
+
+func _normalize_leg_bone_scale() -> void:
+	var leg_bones: Array[Bone2D] = [
+		left_leg_bone,
+		left_lower_leg_bone,
+		left_foot_bone,
+		right_leg_bone,
+		right_lower_leg_bone,
+		right_foot_bone,
+	]
+	for bone in leg_bones:
+		if bone == null:
+			continue
+		bone.scale = Vector2.ONE
