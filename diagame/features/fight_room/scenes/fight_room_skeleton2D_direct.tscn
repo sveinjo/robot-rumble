@@ -1,22 +1,8 @@
-[gd_scene format=3 uid="uid://b4m1nbx3d78hf"]
+[gd_scene format=3 uid="uid://02ejrbppcnpt"]
 
-[ext_resource type="Script" uid="uid://fkorq5qr3ckk" path="res://features/fight_room/scripts/fight_room_skeleton2d.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dfy6rk5sh3f8r" path="res://features/fight_room/scripts/fight_room_skeleton2d_direct.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cv8xpco132u54" path="res://assets/sprites/background3.png" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://sf4j51ne8unj" path="res://assets/sprites/gBot_runtime.png" id="3_gbot"]
-
-[sub_resource type="Environment" id="Environment_1"]
-background_mode = 1
-background_color = Color(0.08, 0.08, 0.1, 1)
-
-[sub_resource type="QuadMesh" id="QuadMesh_Backdrop"]
-size = Vector2(19.2, 10.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Backdrop"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_texture = ExtResource("2_bg")
-texture_filter = 1
+[ext_resource type="Texture2D" uid="uid://c7ffhevf8l4mp" path="res://assets/sprites/gBot.png" id="4_gbot_demo"]
 
 [sub_resource type="Animation" id="Animation_idle_exact"]
 resource_name = "idle_exact"
@@ -100,312 +86,289 @@ _data = {
 &"idle_exact": SubResource("Animation_idle_exact")
 }
 
-[sub_resource type="QuadMesh" id="QuadMesh_Character"]
-size = Vector2(13.2, 10.2)
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_rwjao"]
-viewport_path = NodePath("CharacterViewport")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Character"]
-transparency = 1
-cull_mode = 2
-depth_draw_mode = 2
-shading_mode = 0
-albedo_texture = SubResource("ViewportTexture_rwjao")
-texture_filter = 1
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_Floor"]
-size = Vector2(14, 4.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Floor"]
-albedo_color = Color(0.12, 0.14, 0.2, 1)
-roughness = 0.92
-
-[node name="FightRoomSkeleton2D" type="Node3D" unique_id=153861660]
+[node name="FightRoomSkeleton2DDirect" type="Node2D" unique_id=166090148]
 script = ExtResource("1_script")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1969045622]
-environment = SubResource("Environment_1")
+[node name="Background" type="Sprite2D" parent="." unique_id=706287660]
+z_index = -10
+position = Vector2(960, 540)
+texture = ExtResource("2_bg")
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=940879848]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.84)
-current = true
-fov = 40.0
-near = 0.1
-far = 200.0
-
-[node name="Backdrop" type="MeshInstance3D" parent="." unique_id=510629694]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
-mesh = SubResource("QuadMesh_Backdrop")
-surface_material_override/0 = SubResource("StandardMaterial3D_Backdrop")
-
-[node name="CharacterViewport" type="SubViewport" parent="." unique_id=1842217902]
-disable_3d = true
-transparent_bg = true
-size = Vector2i(1920, 1080)
-render_target_update_mode = 3
-
-[node name="Character2D" type="Node2D" parent="CharacterViewport" unique_id=1294732713]
+[node name="Character2D" type="Node2D" parent="." unique_id=742538647]
 position = Vector2(960, 790)
 
-[node name="IdleAnimationPlayer" type="AnimationPlayer" parent="CharacterViewport/Character2D" unique_id=1471259832]
+[node name="IdleAnimationPlayer" type="AnimationPlayer" parent="Character2D" unique_id=69378282]
 libraries/ = SubResource("AnimationLibrary_fight_room")
 autoplay = &"idle_exact"
 
-[node name="Sprite" type="Node2D" parent="CharacterViewport/Character2D" unique_id=1112978734]
+[node name="Sprite" type="Node2D" parent="Character2D" unique_id=1403865513]
 scale = Vector2(0.86, 0.86)
 
-[node name="Skeleton2D" type="Skeleton2D" parent="CharacterViewport/Character2D/Sprite" unique_id=545878766]
+[node name="Skeleton2D" type="Skeleton2D" parent="Character2D/Sprite" unique_id=1788990663]
 
-[node name="Hip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D" unique_id=975917788]
-position = Vector2(-3, -11.280065)
+[node name="Hip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D" unique_id=1141684699]
+position = Vector2(-3, -9.729841)
+rest = Transform2D(1, 0, 0, 1, -3, -11)
 
-[node name="Chest" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip" unique_id=192094408]
+[node name="Chest" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip" unique_id=1608350331]
 position = Vector2(0, -32)
-rotation = -0.078194715
-
-[node name="Head" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1237915573]
-position = Vector2(0, -160)
-rotation = -0.11170673
+rotation = 0.01650306
 scale = Vector2(0.99999994, 0.99999994)
+rest = Transform2D(1, 0, 0, 1, 0, -32)
 
-[node name="Chin" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/Head" unique_id=33204155]
+[node name="Head" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1603095540]
+position = Vector2(0, -160)
+rotation = 0.0235758
+rest = Transform2D(1, 0, 0, 1, 0, -160)
+
+[node name="Chin" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/Head" unique_id=157884023]
 position = Vector2(0, -49)
-rotation = -0.078194715
+rotation = 0.01650306
+scale = Vector2(0.99999994, 0.99999994)
+rest = Transform2D(0.999999, 0.00169551, -0.00169551, 0.999999, 0, -49)
+default_length = 60.0
 
-[node name="ChinTip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/Head/Chin" unique_id=2017051786]
+[node name="ChinTip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/Head/Chin" unique_id=842558094]
 position = Vector2(0, -56)
 
-[node name="ChinSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/Head/Chin" unique_id=1607396753]
+[node name="ChinSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/Head/Chin" unique_id=1440124170]
+visible = false
 z_index = 11
 position = Vector2(-133, -265)
 offset = Vector2(-516, -603)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(486, 576, 812, 562, 823, 605, 790, 666, 722, 690, 547, 686, 493, 646)
 uv = PackedVector2Array(486, 576, 812, 562, 823, 605, 790, 666, 722, 690, 547, 686, 493, 646)
 
-[node name="HeadSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/Head" unique_id=1773486754]
+[node name="HeadSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/Head" unique_id=762621358]
+visible = false
 z_index = 10
 position = Vector2(-652, -778)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(616.26, 246.341, 555.285, 285.366, 508.13, 330.894, 482.114, 380.488, 482.114, 448.781, 492.683, 498.374, 552.846, 534.146, 656.911, 538.211, 773.984, 511.382, 807.317, 506.504, 813.821, 342.276, 789.431, 297.561, 757.724, 269.106, 669.106, 249.594)
 uv = PackedVector2Array(616.26, 246.341, 555.285, 285.366, 508.13, 330.894, 482.114, 380.488, 482.114, 448.781, 492.683, 498.374, 552.846, 534.146, 656.911, 538.211, 773.984, 511.382, 807.317, 506.504, 813.821, 342.276, 789.431, 297.561, 757.724, 269.106, 669.106, 249.594)
 
-[node name="RightArm" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1643217858]
+[node name="RightArm" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=894384905]
 position = Vector2(80, -100)
-rotation = 0.100536056
-scale = Vector2(0.99999994, 0.99999994)
+rotation = -0.021218222
+scale = Vector2(0.9999999, 0.9999999)
+rest = Transform2D(1, 0, 0, 1, 80, -100)
 
-[node name="RightForearm" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm" unique_id=1051251315]
+[node name="RightForearm" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm" unique_id=1711407787]
 position = Vector2(-11, 97)
 rotation = -0.609531
+rest = Transform2D(1, 0, 0, 1, -11, 97)
 
-[node name="RightHand" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=1490633065]
+[node name="RightHand" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=1042822912]
 position = Vector2(13, 94)
 rotation = 1.22745
+rest = Transform2D(0.336639, 0.941634, -0.941634, 0.336639, 13, 94)
+default_length = 60.0
 
-[node name="RightForearmTip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=1554937788]
+[node name="RightForearmTip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=1497983055]
 position = Vector2(0, 86)
 
-[node name="RightForearmSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=1331403655]
+[node name="RightForearmSprite" type="Sprite2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm/RightForearm" unique_id=220354934]
+visible = false
 z_index = 7
 position = Vector2(-46, -2)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 centered = false
 region_enabled = true
 region_rect = Rect2(180, 30, 131, 327)
 
-[node name="RightArmSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm" unique_id=1937856994]
+[node name="RightArmSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/RightArm" unique_id=1816817009]
+visible = false
 z_index = 6
 position = Vector2(-150, -240)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(237.601, 31.7394, 217.703, 30.1435, 183.732, 47.8469, 274.303, 49.2926, 271.111, 94.5053, 183.877, 89.7181, 185.505, 166.856, 248.688, 172.323, 242.541, 187.015, 189.46, 182.958, 190.308, 202.449, 180.383, 225.837, 201.435, 321.531, 242.841, 196.76, 256.334, 215.801, 276.077, 283.732, 295.215, 310.526, 272.249, 351.675, 216.746, 356.459)
 uv = PackedVector2Array(237.601, 31.7394, 217.703, 30.1435, 183.732, 47.8469, 274.303, 49.2926, 271.111, 94.5053, 183.877, 89.7181, 185.505, 166.856, 248.688, 172.323, 242.541, 187.015, 189.46, 182.958, 190.308, 202.449, 180.383, 225.837, 201.435, 321.531, 242.841, 196.76, 256.334, 215.801, 276.077, 283.732, 295.215, 310.526, 272.249, 351.675, 216.746, 356.459)
 
-[node name="LeftArm" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1430543242]
+[node name="LeftArm" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1775464305]
 position = Vector2(-100, -100)
-rotation = 0.13404807
+rotation = -0.028290961
+rest = Transform2D(1, 0, 0, 1, -100, -100)
 
-[node name="LeftForearm" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm" unique_id=990925281]
+[node name="LeftForearm" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm" unique_id=1741388397]
 position = Vector2(-2, 95)
 rotation = -0.554398
+rest = Transform2D(1, 0, 0, 1, -2, 95)
 
-[node name="LeftHand" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=1483078420]
+[node name="LeftHand" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=1964382170]
 position = Vector2(9, 102)
 rotation = 1.22983
+rest = Transform2D(0.334394, 0.942433, -0.942433, 0.334394, 9, 102)
+default_length = 60.0
 
-[node name="LeftForearmTip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=1468385224]
+[node name="LeftForearmTip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=1787212146]
 position = Vector2(0, 86)
 
-[node name="LeftForearmSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=828965318]
+[node name="LeftForearmSprite" type="Sprite2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm/LeftForearm" unique_id=1301859837]
+visible = false
 z_index = 7
 position = Vector2(-42, -6)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 centered = false
 region_enabled = true
 region_rect = Rect2(20, 16, 118, 344)
 
-[node name="LeftArmSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm" unique_id=2079664596]
+[node name="LeftArmSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/Chest/LeftArm" unique_id=479944847]
+visible = false
 z_index = 6
 position = Vector2(-168, -240)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(89.9521, 16.268, 77.5119, 15.7895, 55.5023, 25.8373, 39.2344, 29.1866, 33.9712, 59.3302, 27.2727, 154.545, 29.1865, 180.861, 33.4928, 196.172, 20.5741, 240.67, 36.842, 321.531, 61.244, 359.809, 125.837, 353.11, 137.799, 309.569, 122.967, 287.56, 106.22, 202.871, 92.3444, 191.866, 91.866, 179.426, 127.273, 70.3349, 134.928, 48.3254, 119.617, 30.622)
 uv = PackedVector2Array(89.9521, 16.268, 77.5119, 15.7895, 55.5023, 25.8373, 39.2344, 29.1866, 33.9712, 59.3302, 27.2727, 154.545, 29.1865, 180.861, 33.4928, 196.172, 20.5741, 240.67, 36.842, 321.531, 61.244, 359.809, 125.837, 353.11, 137.799, 309.569, 122.967, 287.56, 106.22, 202.871, 92.3444, 191.866, 91.866, 179.426, 127.273, 70.3349, 134.928, 48.3254, 119.617, 30.622)
 
-[node name="BodySprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/Chest" unique_id=1850130343]
-position = Vector2(-436, -294)
-texture = ExtResource("3_gbot")
-polygon = PackedVector2Array(473.936, 29.2553, 430.851, 19.6809, 384.043, 78.7234, 344.681, 107.447, 348.404, 192.553, 375.532, 240.426, 375, 255.319, 351.064, 269.681, 347.34, 294.681, 371.809, 334.574, 468.085, 347.872, 490.957, 296.809, 489.894, 276.596, 472.368, 259.211, 473.936, 245.745, 505.319, 222.34, 522.872, 179.787, 507.447, 121.809, 484.043, 84.0426, 398.404, 38.2979, 419.681, 344.149)
-uv = PackedVector2Array(473.936, 29.2553, 430.851, 19.6809, 384.043, 78.7234, 344.681, 107.447, 348.404, 192.553, 375.532, 240.426, 375, 255.319, 351.064, 269.681, 347.34, 294.681, 371.809, 334.574, 468.085, 347.872, 490.957, 296.809, 489.894, 276.596, 472.368, 259.211, 473.936, 245.745, 505.319, 222.34, 522.872, 179.787, 507.447, 121.809, 484.043, 84.0426, 398.404, 38.2979, 419.681, 344.149)
-
-[node name="LeftLeg" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip" unique_id=525051455]
+[node name="LeftLeg" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip" unique_id=241563792]
 position = Vector2(-72, 26)
 rotation = -0.65527
+rest = Transform2D(1, 0, 0, 1, -72, 26)
 
-[node name="LeftLowerLeg" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/LeftLeg" unique_id=1775060998]
+[node name="LeftLowerLeg" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/LeftLeg" unique_id=57318502]
 position = Vector2(-13, 91)
 rotation = 0.53105
+rest = Transform2D(1, 0, 0, 1, -13, 91)
 
-[node name="LeftFoot" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=877502976]
+[node name="LeftFoot" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=1045525266]
 position = Vector2(7, 127)
 rotation = 0.055174
+rest = Transform2D(1, 0, 0, 1, 7, 127)
+default_length = 60.0
 
-[node name="LeftLowerLegTip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=1662221571]
+[node name="LeftLowerLegTip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=319947985]
 position = Vector2(0, 98)
 
-[node name="LeftLowerLegSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=1855080679]
+[node name="LeftLowerLegSprite" type="Sprite2D" parent="Character2D/Sprite/Skeleton2D/Hip/LeftLeg/LeftLowerLeg" unique_id=3231216]
+visible = false
 z_index = 5
 position = Vector2(-72, 14)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 centered = false
 region_enabled = true
 region_rect = Rect2(21, 387, 167, 306)
 
-[node name="LeftLegSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/LeftLeg" unique_id=1601237633]
+[node name="LeftLegSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/LeftLeg" unique_id=43114114]
+visible = false
 z_index = 4
 position = Vector2(-153, -402)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(65.7658, 390, 92.4325, 386.667, 119.099, 398.333, 119.099, 426.667, 120.766, 477.5, 107.433, 551.667, 129.099, 592.5, 163.266, 604.167, 188.266, 675, 173.266, 692.5, 20.7658, 686.667, 25.7658, 648.333, 29.9325, 608.333, 24.0992, 530.833, 54.9325, 472.5)
 uv = PackedVector2Array(65.7658, 390, 92.4325, 386.667, 119.099, 398.333, 119.099, 426.667, 120.766, 477.5, 107.433, 551.667, 129.099, 592.5, 163.266, 604.167, 188.266, 675, 173.266, 692.5, 20.7658, 686.667, 25.7658, 648.333, 29.9325, 608.333, 24.0992, 530.833, 54.9325, 472.5)
 
-[node name="RightLeg" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip" unique_id=840870203]
+[node name="RightLeg" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip" unique_id=573866849]
 position = Vector2(46, 11)
 rotation = 0.359249
 scale = Vector2(0.9999998, 0.9999998)
+rest = Transform2D(1, 0, 0, 1, 46, 11)
 
-[node name="RightLowerLeg" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/RightLeg" unique_id=1462146039]
+[node name="RightLowerLeg" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/RightLeg" unique_id=408341721]
 position = Vector2(-26, 94)
 rotation = 0.336345
+rest = Transform2D(1, 0, 0, 1, -26, 94)
 
-[node name="RightFoot" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=1600743282]
+[node name="RightFoot" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=819566890]
 position = Vector2(2, 129)
 rotation = -0.0939702
+rest = Transform2D(1, 0, 0, 1, 2, 129)
+default_length = 60.0
 
-[node name="RightLowerLegTip" type="Bone2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=816319088]
+[node name="RightLowerLegTip" type="Bone2D" parent="Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=1307503501]
 position = Vector2(0, 98)
 
-[node name="RightLowerLegSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=1712905950]
+[node name="RightLowerLegSprite" type="Sprite2D" parent="Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg" unique_id=1003755860]
+visible = false
 z_index = 5
 position = Vector2(-68, 16)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 centered = false
 region_enabled = true
 region_rect = Rect2(247, 381, 162, 315)
 
-[node name="RightLegSprite" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Skeleton2D/Hip/RightLeg" unique_id=1467768948]
+[node name="RightLegSprite" type="Polygon2D" parent="Character2D/Sprite/Skeleton2D/Hip/RightLeg" unique_id=582884521]
+visible = false
 z_index = 4
 position = Vector2(-274, -409)
-texture = ExtResource("3_gbot")
+texture = ExtResource("4_gbot_demo")
 polygon = PackedVector2Array(348.266, 400, 289.099, 380.833, 280.766, 435, 276.599, 470.833, 250.766, 515, 249.933, 604.167, 246.599, 690.833, 407.433, 695.833, 409.099, 659.167, 384.099, 606.667, 349.099, 599.167, 330.766, 550, 342.433, 476.667, 337.433, 442.5)
 uv = PackedVector2Array(348.266, 400, 289.099, 380.833, 280.766, 435, 276.599, 470.833, 250.766, 515, 249.933, 604.167, 246.599, 690.833, 407.433, 695.833, 409.099, 659.167, 384.099, 606.667, 349.099, 599.167, 330.766, 550, 342.433, 476.667, 337.433, 442.5)
 
-[node name="Polygons" type="Node2D" parent="CharacterViewport/Character2D/Sprite" unique_id=1675409883]
-visible = false
+[node name="Polygons" type="Node2D" parent="Character2D/Sprite" unique_id=721261505]
 
-[node name="BodyWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=1080910648]
+[node name="BodyWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=2021980129]
 position = Vector2(-436, -294)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(473.936, 29.2553, 430.851, 19.6809, 384.043, 78.7234, 344.681, 107.447, 348.404, 192.553, 375.532, 240.426, 375, 255.319, 351.064, 269.681, 347.34, 294.681, 371.809, 334.574, 468.085, 347.872, 490.957, 296.809, 489.894, 276.596, 472.368, 259.211, 473.936, 245.745, 505.319, 222.34, 522.872, 179.787, 507.447, 121.809, 484.043, 84.0426, 398.404, 38.2979, 419.681, 344.149)
 uv = PackedVector2Array(473.936, 29.2553, 430.851, 19.6809, 384.043, 78.7234, 344.681, 107.447, 348.404, 192.553, 375.532, 240.426, 375, 255.319, 351.064, 269.681, 347.34, 294.681, 371.809, 334.574, 468.085, 347.872, 490.957, 296.809, 489.894, 276.596, 472.368, 259.211, 473.936, 245.745, 505.319, 222.34, 522.872, 179.787, 507.447, 121.809, 484.043, 84.0426, 398.404, 38.2979, 419.681, 344.149)
 polygons = [PackedInt32Array(2, 19, 1, 0, 18), PackedInt32Array(2, 3, 17, 18), PackedInt32Array(3, 4, 15, 16, 17), PackedInt32Array(4, 5, 14, 15), PackedInt32Array(5, 6, 13, 14), PackedInt32Array(6, 7, 12, 13), PackedInt32Array(7, 8, 11, 12), PackedInt32Array(8, 9, 20, 10, 11)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0.51, 0.51, 1, 1, 1, 1, 1, 1, 0.51, 0.51, 0, 0, 0, 0, 0, 1), "Hip/Chest", PackedFloat32Array(1, 1, 1, 1, 1, 0.51, 0.51, 0, 0, 0, 0, 0, 0, 0.51, 0.51, 1, 1, 1, 1, 1, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 21
 
-[node name="HeadWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=434196935]
+[node name="HeadWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=523076199]
 z_index = 2
 position = Vector2(-652, -778)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(616.26, 246.341, 555.285, 285.366, 508.13, 330.894, 482.114, 380.488, 482.114, 448.781, 492.683, 498.374, 552.846, 534.146, 656.911, 538.211, 773.984, 511.382, 807.317, 506.504, 813.821, 342.276, 789.431, 297.561, 757.724, 269.106, 669.106, 249.594)
 uv = PackedVector2Array(616.26, 246.341, 555.285, 285.366, 508.13, 330.894, 482.114, 380.488, 482.114, 448.781, 492.683, 498.374, 552.846, 534.146, 656.911, 538.211, 773.984, 511.382, 807.317, 506.504, 813.821, 342.276, 789.431, 297.561, 757.724, 269.106, 669.106, 249.594)
 polygons = [PackedInt32Array(10, 11, 12, 13, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 14
 
-[node name="ChinWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=214061290]
+[node name="ChinWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=40855694]
 z_index = 3
 position = Vector2(-133, -265)
 offset = Vector2(-516, -603)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(486, 576, 812, 562, 823, 605, 790, 666, 722, 690, 547, 686, 493, 646)
 uv = PackedVector2Array(486, 576, 812, 562, 823, 605, 790, 666, 722, 690, 547, 686, 493, 646)
 polygons = [PackedInt32Array(0, 1, 2, 3, 4, 5, 6)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(1, 1, 1, 1, 1, 1, 1), "Hip/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 7
 
-[node name="LeftArmWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=1812117618]
+[node name="LeftArmWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=114504692]
 z_index = 4
 position = Vector2(-168, -240)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(89.9521, 16.268, 77.5119, 15.7895, 55.5023, 25.8373, 39.2344, 29.1866, 33.9712, 59.3302, 27.2727, 154.545, 29.1865, 180.861, 33.4928, 196.172, 20.5741, 240.67, 36.842, 321.531, 61.244, 359.809, 125.837, 353.11, 137.799, 309.569, 122.967, 287.56, 106.22, 202.871, 92.3444, 191.866, 91.866, 179.426, 127.273, 70.3349, 134.928, 48.3254, 119.617, 30.622)
 uv = PackedVector2Array(89.9521, 16.268, 77.5119, 15.7895, 55.5023, 25.8373, 39.2344, 29.1866, 33.9712, 59.3302, 27.2727, 154.545, 29.1865, 180.861, 33.4928, 196.172, 20.5741, 240.67, 36.842, 321.531, 61.244, 359.809, 125.837, 353.11, 137.799, 309.569, 122.967, 287.56, 106.22, 202.871, 92.3444, 191.866, 91.866, 179.426, 127.273, 70.3349, 134.928, 48.3254, 119.617, 30.622)
 polygons = [PackedInt32Array(3, 2, 1, 0, 19, 18, 17, 4), PackedInt32Array(4, 5, 16, 17), PackedInt32Array(16, 15, 7, 6), PackedInt32Array(16, 6, 5), PackedInt32Array(7, 8, 14, 15), PackedInt32Array(14, 13, 9, 8), PackedInt32Array(13, 12, 11, 10, 9)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm", PackedFloat32Array(1, 1, 1, 1, 1, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 1), "Hip/Chest/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 1, 1, 1, 0.5, 0, 0, 0, 0.5, 1, 1, 0.5, 0, 0, 0), "Hip/Chest/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1, 1, 1, 0.5, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 20
 
-[node name="RightArmWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=250204694]
+[node name="RightArmWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=4701344]
 z_index = -3
 position = Vector2(-150, -240)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(237.601, 31.7394, 217.703, 30.1435, 183.732, 47.8469, 274.303, 49.2926, 271.111, 94.5053, 183.877, 89.7181, 185.505, 166.856, 248.688, 172.323, 242.541, 187.015, 189.46, 182.958, 190.308, 202.449, 180.383, 225.837, 201.435, 321.531, 242.841, 196.76, 256.334, 215.801, 276.077, 283.732, 295.215, 310.526, 272.249, 351.675, 216.746, 356.459)
 uv = PackedVector2Array(235.407, 30.1435, 217.703, 30.1435, 183.732, 47.8469, 276.555, 49.2823, 274.641, 85.6459, 181.34, 83.7321, 184.689, 180.383, 253.11, 178.469, 243.541, 188.995, 188.038, 187.081, 188.995, 200, 180.383, 225.837, 201.435, 321.531, 244.976, 199.043, 259.809, 215.789, 276.077, 283.732, 295.215, 310.526, 272.249, 351.675, 216.746, 356.459)
 polygons = [PackedInt32Array(0, 1, 2, 5, 4, 3), PackedInt32Array(4, 7, 6, 5), PackedInt32Array(8, 7, 6, 9), PackedInt32Array(13, 8, 9, 10), PackedInt32Array(13, 14, 11, 10), PackedInt32Array(14, 15, 12, 11), PackedInt32Array(15, 16, 17, 18, 12)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm", PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 1, 1, 0.5, 1, 1, 0.5, 0, 0, 0), "Hip/Chest/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0.5, 1, 1, 1), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 19
 
-[node name="LeftLegWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=826802339]
+[node name="LeftLegWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=1905650067]
 z_index = 1
 position = Vector2(-153, -402)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(65.7658, 390, 92.4325, 386.667, 119.099, 398.333, 119.099, 426.667, 120.766, 477.5, 107.433, 551.667, 129.099, 592.5, 163.266, 604.167, 188.266, 675, 173.266, 692.5, 20.7658, 686.667, 25.7658, 648.333, 29.9325, 608.333, 24.0992, 530.833, 54.9325, 472.5)
 uv = PackedVector2Array(65.7658, 390, 92.4325, 386.667, 119.099, 398.333, 119.099, 426.667, 120.766, 477.5, 107.433, 551.667, 129.099, 592.5, 163.266, 604.167, 188.266, 675, 173.266, 692.5, 20.7658, 686.667, 25.7658, 648.333, 29.9325, 608.333, 24.0992, 530.833, 54.9325, 472.5)
 polygons = [PackedInt32Array(0, 1, 2, 3, 4, 14), PackedInt32Array(4, 5, 13, 14), PackedInt32Array(5, 6, 12, 13), PackedInt32Array(6, 7, 8, 9, 10, 11, 12)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0.03, 1, 0, 0, 0, 0, 0, 0, 0.53, 0.5, 0.03), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0.53, 1, 1, 1, 1, 1, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)]
 internal_vertex_count = 15
 
-[node name="RightLegWeighted" type="Polygon2D" parent="CharacterViewport/Character2D/Sprite/Polygons" unique_id=2039769702]
+[node name="RightLegWeighted" type="Polygon2D" parent="Character2D/Sprite/Polygons" unique_id=479646012]
 z_index = -2
 position = Vector2(-274, -409)
-texture = ExtResource("3_gbot")
-skeleton = NodePath("../Skeleton2D")
+texture = ExtResource("4_gbot_demo")
+skeleton = NodePath("../../Skeleton2D")
 polygon = PackedVector2Array(348.266, 400, 289.099, 380.833, 280.766, 435, 276.599, 470.833, 250.766, 515, 249.933, 604.167, 246.599, 690.833, 407.433, 695.833, 409.099, 659.167, 384.099, 606.667, 349.099, 599.167, 330.766, 550, 342.433, 476.667, 337.433, 442.5)
 uv = PackedVector2Array(348.266, 400, 289.099, 380.833, 280.766, 435, 276.599, 470.833, 250.766, 515, 249.933, 604.167, 246.599, 690.833, 407.433, 695.833, 409.099, 659.167, 384.099, 606.667, 349.099, 599.167, 330.766, 550, 342.433, 476.667, 337.433, 442.5)
 polygons = [PackedInt32Array(0, 1, 2, 13), PackedInt32Array(13, 12, 3, 2), PackedInt32Array(12, 11, 4, 3), PackedInt32Array(11, 10, 5, 4), PackedInt32Array(10, 9, 8, 7, 6, 5)]
 bones = ["Hip", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/Chest/Head/Chin", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftArm/LeftForearm/LeftHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightArm/RightForearm/RightHand", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/LeftLeg/LeftLowerLeg/LeftFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "Hip/RightLeg", PackedFloat32Array(1, 1, 1, 0.53, 0, 0, 0, 0, 0, 0, 0, 0, 0.53, 1), "Hip/RightLeg/RightLowerLeg", PackedFloat32Array(0, 0, 0, 0.53, 1, 1, 0, 0, 0, 0, 0, 1, 0.53, 0), "Hip/RightLeg/RightLowerLeg/RightFoot", PackedFloat32Array(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0.53, 0, 0, 0)]
 internal_vertex_count = 14
-
-[node name="CharacterScreen" type="MeshInstance3D" parent="." unique_id=1450387189]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.9, -1.2)
-mesh = SubResource("QuadMesh_Character")
-surface_material_override/0 = SubResource("StandardMaterial3D_Character")
-
-[node name="Floor" type="MeshInstance3D" parent="." unique_id=1205413958]
-transform = Transform3D(1, 0, 0, 0, 0.45399168, -0.8910065, 0, 0.8910065, 0.45399168, 0, -2.9, -1.8)
-visible = false
-mesh = SubResource("PlaneMesh_Floor")
-surface_material_override/0 = SubResource("StandardMaterial3D_Floor")
