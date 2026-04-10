@@ -2,7 +2,7 @@
 extends Node2D
 
 const WEIGHTED_TEXTURE: Texture2D = preload("res://assets/sprites/gBot.png")
-const DEMO_PLAYER_SCENE: PackedScene = preload("res://assets/skeleton/player/player.tscn")
+const DEMO_PLAYER_SCENE: PackedScene = preload("res://features/fight_room/resources/gbot_animation_source.tscn")
 
 @onready var idle_animation_player: AnimationPlayer = $Character2D/IdleAnimationPlayer
 @onready var skeleton_2d: Skeleton2D = $Character2D/Sprite/Skeleton2D
