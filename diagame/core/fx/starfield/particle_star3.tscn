@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://star3scene"]
 
-[ext_resource type="Texture2D" uid="uid://dl8m0j1o4q5r6" path="res://assets/sprites/Star3.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/Star3.png" id="1"]
 [ext_resource type="Script" path="res://core/fx/starfield/particle_star.gd" id="2"]
 
 [node name="ParticleStar3" type="Sprite2D"]

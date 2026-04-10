@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://particle_overlay_scene"]
 
 [ext_resource type="Script" path="res://core/fx/starfield/particle_overlay.gd" id="1_particle_overlay"]
-[ext_resource type="Texture2D" uid="uid://star1b" path="res://assets/sprites/Star1b.png" id="2_star1b"]
+[ext_resource type="Texture2D" path="res://assets/sprites/Star1b.png" id="2_star1b"]
 
 [node name="ParticleOverlay" type="Sprite2D"]
 z_index = -10

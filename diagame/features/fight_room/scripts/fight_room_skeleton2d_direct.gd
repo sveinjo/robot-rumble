@@ -110,6 +110,9 @@ func _import_demo_animations() -> void:
 		if source_animation == null:
 			continue
 		var copied_animation := source_animation.duplicate(true) as Animation
+		for track_idx in range(copied_animation.get_track_count() - 1, -1, -1):
+			if copied_animation.track_get_key_count(track_idx) == 0:
+				copied_animation.remove_track(track_idx)
 		if target_library.has_animation(animation_name):
 			target_library.remove_animation(animation_name)
 		target_library.add_animation(animation_name, copied_animation)

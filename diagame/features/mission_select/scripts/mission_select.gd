@@ -192,7 +192,7 @@ func _handle_left_click(mouse_pos: Vector2):
 		var raw_mission: Variant = GameState.arrayMissions[idx]
 		if raw_mission == null:
 			return
-		var mission: Dictionary = raw_mission
+		var _mission: Dictionary = raw_mission
 
 		GameState.intMissionSelected = idx
 		if ResourceLoader.exists("res://features/play_field/scenes/play_field.tscn"):
@@ -210,8 +210,8 @@ func _draw_titles():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
 	var title_blue_pos := _with_text_height(Vector2(1163, 47), 24)
 	var title_white_pos := _with_text_height(Vector2(1160, 44), 24)
-	draw_string(font, title_blue_pos, "SELECT MISSION", 0, 440, 24, Color.BLUE)
-	draw_string(font, title_white_pos, "SELECT MISSION", 0, 440, 24, Color.WHITE)
+	draw_string(font, title_blue_pos, "SELECT MISSION", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color.BLUE)
+	draw_string(font, title_white_pos, "SELECT MISSION", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color.WHITE)
 
 func _draw_roster():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
@@ -242,10 +242,10 @@ func _draw_roster():
 
 		var hero_class: String = str(hero_data.get("class", "Hero"))
 		# Draw level inside the shield, then class / XP progress / ability on separate lines.
-		draw_string(font, _with_text_height(hero_rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
-		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 22), 24), hero_class, 0, 300, 24, Color.WHITE)
-		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], 0, 300, 24, Color.WHITE)
-		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 72), 24), ability_name, 0, 300, 24, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + LEVEL_OFFSET, 24), "%d" % level, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 22), 24), hero_class, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(font, _with_text_height(hero_rect.position + Vector2(204, 72), 24), ability_name, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
 
 func _draw_mission_grid():
 	var font := arcade_font if arcade_font else ThemeDB.fallback_font
@@ -297,11 +297,11 @@ func _draw_mission_grid():
 
 		var level_text := "%d" % int(mission.get("intLevel", 1))
 		# Draw level number inside the shield in black.
-		draw_string(font, _with_text_height(slot_rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
+		draw_string(font, _with_text_height(slot_rect.position + LEVEL_OFFSET, 24), level_text, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
 
 func _get_slot_rect(index: int) -> Rect2:
 	var x_idx := ((index - 1) % 3) + 1
-	var y_idx := int((index - 1) / 3) + 1
+	var y_idx := int((index - 1) / 3.0) + 1
 	return Rect2(Vector2(SLOT_X[x_idx], SLOT_Y[y_idx]), CARD_SIZE)
 
 func _with_text_height(pos: Vector2, font_size: int) -> Vector2:
@@ -328,7 +328,7 @@ func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, 
 				current_line = ""
 			continue
 		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
-		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		var text_size := font.get_string_size(test_text, HORIZONTAL_ALIGNMENT_LEFT, max_width, font_size)
 		
 		if text_size.x > max_width and current_line.length() > 0:
 			lines.append(current_line)
@@ -344,6 +344,6 @@ func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, 
 	var y_offset := 0.0
 	for line in lines:
 		if outline_color.a > 0.0:
-			draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, outline_color)
-		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+			draw_string(font, pos + Vector2(0, y_offset), line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_color)
+		draw_string(font, pos + Vector2(0, y_offset), line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 		y_offset += line_height

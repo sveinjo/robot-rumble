@@ -407,15 +407,15 @@ func _draw_title():
 		return
 	var blue_pos := _with_text_height(TITLE_POS + Vector2(3, 3), 24)
 	var white_pos := _with_text_height(TITLE_POS, 24)
-	draw_string(arcade_font, blue_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color(0.0, 0.0, 1.0))
-	draw_string(arcade_font, white_pos, "PREPARE FOR BATTLE", 0, 440, 24, Color.WHITE)
+	draw_string(arcade_font, blue_pos, "PREPARE FOR BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color(0.0, 0.0, 1.0))
+	draw_string(arcade_font, white_pos, "PREPARE FOR BATTLE", HORIZONTAL_ALIGNMENT_LEFT, 440, 24, Color.WHITE)
 
 func _draw_vs():
 	if arcade_font == null:
 		return
 	var base_pos := _with_text_height(VS_POS, 24)
-	draw_string(arcade_font, base_pos + Vector2(3, 3), "VS.", 0, 176, 24, Color(0.0, 0.0, 1.0))
-	draw_string(arcade_font, base_pos, "VS.", 0, 176, 24, Color.WHITE)
+	draw_string(arcade_font, base_pos + Vector2(3, 3), "VS.", HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color(0.0, 0.0, 1.0))
+	draw_string(arcade_font, base_pos, "VS.", HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.WHITE)
 
 func _draw_enemies():
 	if arcade_font == null:
@@ -432,7 +432,7 @@ func _draw_enemies():
 			var frame_rect := Rect2(rect.position, FRAME_SIZE)
 			draw_texture_rect(frame_texture, frame_rect, false)
 		var level_text := "%d" % int(mission_data.get("intLevel", 1))
-		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), level_text, 0, 176, 24, Color.BLACK)
+		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), level_text, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
 
 		var raw_enemy: Variant = GameState.arrayEnemies[enemy_id]
 		if raw_enemy != null:
@@ -485,10 +485,10 @@ func _draw_roster():
 		var current_level_xp: int = max(0, xp - current_level_floor)
 		var level_delta: int = max(1, next_level - current_level_floor)
 
-		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), "%d" % level, 0, 176, 24, Color.BLACK)
-		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), class_label, 0, 300, 24, Color.WHITE)
-		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], 0, 300, 24, Color.WHITE)
-		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 72), 24), ability_name, 0, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + LEVEL_OFFSET, 24), "%d" % level, HORIZONTAL_ALIGNMENT_LEFT, 176, 24, Color.BLACK)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 22), 24), class_label, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 48), 24), "XP:%d/%d" % [current_level_xp, level_delta], HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
+		draw_string(arcade_font, _with_text_height(rect.position + Vector2(204, 72), 24), ability_name, HORIZONTAL_ALIGNMENT_LEFT, 300, 24, Color.WHITE)
 
 func _draw_engage_slots():
 	if arcade_font == null:
@@ -537,7 +537,7 @@ func _draw_bottom_ui():
 		draw_texture_rect(next_button_texture, button_rect, false, Color(1, 1, 1, 1.0 if enabled else 0.65))
 	else:
 		draw_rect(button_rect, Color.WHITE, false, 2.0)
-	draw_string(arcade_font, _with_text_height(button_rect.position + Vector2(36, 52), 24), "FIGHT", 0, 120, 24, Color.WHITE)
+	draw_string(arcade_font, _with_text_height(button_rect.position + Vector2(36, 52), 24), "FIGHT", HORIZONTAL_ALIGNMENT_LEFT, 120, 24, Color.WHITE)
 
 func _draw_results_overlay():
 	if arcade_font == null:
@@ -577,7 +577,7 @@ func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, 
 				current_line = ""
 			continue
 		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
-		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		var text_size := font.get_string_size(test_text, HORIZONTAL_ALIGNMENT_LEFT, max_width, font_size)
 		if text_size.x > max_width and current_line.length() > 0:
 			lines.append(current_line)
 			current_line = word
@@ -591,8 +591,8 @@ func _draw_wrapped_text(font: Font, pos: Vector2, text: String, font_size: int, 
 	var y_offset := 0.0
 	for line in lines:
 		if outline_color.a > 0.0:
-			draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, outline_color)
-		draw_string(font, pos + Vector2(0, y_offset), line, 0, -1, font_size, color)
+			draw_string(font, pos + Vector2(0, y_offset), line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline_color)
+		draw_string(font, pos + Vector2(0, y_offset), line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 		y_offset += line_height
 
 func _draw_centered_wrapped_text(font: Font, center_pos: Vector2, text: String, font_size: int, max_width: int, color: Color):
@@ -608,7 +608,7 @@ func _draw_centered_wrapped_text(font: Font, center_pos: Vector2, text: String, 
 				current_line = ""
 			continue
 		var test_text := current_line + (" " if current_line.length() > 0 else "") + word
-		var text_size := font.get_string_size(test_text, 0, max_width, font_size)
+		var text_size := font.get_string_size(test_text, HORIZONTAL_ALIGNMENT_LEFT, max_width, font_size)
 		if text_size.x > max_width and current_line.length() > 0:
 			lines.append(current_line)
 			current_line = word
@@ -621,6 +621,6 @@ func _draw_centered_wrapped_text(font: Font, center_pos: Vector2, text: String, 
 	var line_height := float(font.get_height(font_size)) if font != null else float(font_size)
 	var y_offset := 0.0
 	for line in lines:
-		var line_width := font.get_string_size(line, 0, -1, font_size).x
-		draw_string(font, center_pos + Vector2(-line_width * 0.5, y_offset), line, 0, -1, font_size, color)
+		var line_width := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		draw_string(font, center_pos + Vector2(-line_width * 0.5, y_offset), line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 		y_offset += line_height
