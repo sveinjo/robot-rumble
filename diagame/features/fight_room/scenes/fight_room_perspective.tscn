@@ -1,15 +1,16 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://jdlkj2exvqbg"]
 
-[ext_resource type="Script" path="res://features/fight_room/scripts/fight_room_perspective.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cv8xpco132u54" path="res://assets/sprites/background3.png" id="2_bg"]
+[ext_resource type="Script" uid="uid://273hsi042kj0" path="res://features/fight_room/scripts/fight_room_perspective.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://38tptbwent5u" path="res://assets/sprites/background2.png" id="2_cklek"]
 
-[node name="FightRoomPerspective" type="Node2D"]
+[node name="FightRoomPerspective" type="Node2D" unique_id=1204829299]
+top_level = true
 script = ExtResource("1_script")
 
-[node name="BackgroundLayer" type="CanvasLayer" parent="."]
-layer = -10
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1625233842]
+layer = -1
 
-[node name="Background" type="Sprite2D" parent="BackgroundLayer"]
-z_index = -200
+[node name="Background" type="Sprite2D" parent="BackgroundLayer" unique_id=789444721]
+z_as_relative = false
 position = Vector2(960, 540)
-texture = ExtResource("2_bg")
+texture = ExtResource("2_cklek")
