@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://b4m1nbx3d78hf"]
+
+[ext_resource type="Script" path="res://features/fight_room/scripts/fight_room_skeleton2d.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cv8xpco132u54" path="res://assets/sprites/background3.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://ce7cw34b7f18o" path="res://icon.svg" id="3_icon"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.08, 0.08, 0.1, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_Backdrop"]
+size = Vector2(19.2, 10.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Backdrop"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("2_bg")
+texture_filter = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_Character"]
+size = Vector2(10.4, 8.8)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_Floor"]
+size = Vector2(14, 4.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Floor"]
+albedo_color = Color(0.12, 0.14, 0.2, 1)
+roughness = 0.92
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_Character"]
+viewport_path = NodePath("CharacterViewport")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Character"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_texture = SubResource("ViewportTexture_Character")
+texture_filter = 1
+
+[node name="FightRoomSkeleton2D" type="Node3D" unique_id=153861660]
+script = ExtResource("1_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1969045622]
+environment = SubResource("Environment_1")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=940879848]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.84)
+projection = 1
+current = true
+
+[node name="Backdrop" type="MeshInstance3D" parent="." unique_id=510629694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+mesh = SubResource("QuadMesh_Backdrop")
+surface_material_override/0 = SubResource("StandardMaterial3D_Backdrop")
+
+[node name="CharacterViewport" type="SubViewport" parent="." unique_id=1842217902]
+transparent_bg = true
+disable_3d = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 3
+
+[node name="Character2D" type="Node2D" parent="CharacterViewport" unique_id=1294732713]
+position = Vector2(960, 745)
+
+[node name="Skeleton2D" type="Skeleton2D" parent="CharacterViewport/Character2D" unique_id=545878766]
+
+[node name="RootBone" type="Bone2D" parent="CharacterViewport/Character2D/Skeleton2D" unique_id=975917788]
+position = Vector2(0, 140)
+default_length = 130.0
+
+[node name="BodySprite" type="Sprite2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone" unique_id=1850130343]
+position = Vector2(0, -36)
+scale = Vector2(0.48, 0.62)
+modulate = Color(0.65, 0.87, 1, 1)
+texture = ExtResource("3_icon")
+
+[node name="TorsoBone" type="Bone2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone" unique_id=192094408]
+position = Vector2(0, -120)
+default_length = 110.0
+
+[node name="HeadBone" type="Bone2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone/TorsoBone" unique_id=1237915573]
+position = Vector2(0, -112)
+default_length = 65.0
+
+[node name="HeadSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone/TorsoBone/HeadBone" unique_id=1773486754]
+position = Vector2(0, -40)
+scale = Vector2(0.34, 0.34)
+modulate = Color(1, 0.9, 0.6, 1)
+texture = ExtResource("3_icon")
+
+[node name="ArmBone" type="Bone2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone" unique_id=1643217858]
+position = Vector2(78, -108)
+rotation = 0.4
+default_length = 120.0
+
+[node name="ArmSprite" type="Sprite2D" parent="CharacterViewport/Character2D/Skeleton2D/RootBone/ArmBone" unique_id=170564662]
+position = Vector2(45, 0)
+scale = Vector2(0.32, 0.22)
+modulate = Color(1, 0.7, 0.7, 1)
+texture = ExtResource("3_icon")
+
+[node name="CharacterScreen" type="MeshInstance3D" parent="." unique_id=1450387189]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, -0.2, -0.4)
+mesh = SubResource("QuadMesh_Character")
+surface_material_override/0 = SubResource("StandardMaterial3D_Character")
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=1205413958]
+transform = Transform3D(1, 0, 0, 0, 0.45399168, -0.8910065, 0, 0.8910065, 0.45399168, 0, -2.9, -1.8)
+mesh = SubResource("PlaneMesh_Floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_Floor")
