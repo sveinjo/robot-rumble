@@ -11,15 +11,17 @@ extends Node3D
 func _ready():
 	var viewport_right = _duplicate_viewport(viewport, "SubViewport_Right")
 	var viewport_left = _duplicate_viewport(viewport, "SubViewport_Left")
+	var viewport_back = _duplicate_viewport(viewport, "SubViewport_Back")
 
 	_populate_viewport(viewport, "res://features/credits/scenes/credits.tscn")
 	_populate_viewport(viewport_right, "res://features/credits/scenes/charge_megacharge1.tscn")
 	_populate_viewport(viewport_left, "res://features/credits/scenes/charge.tscn")
+	_populate_viewport(viewport_back, "res://features/fight_room/scenes/fight_room_skeleton2D_direct.tscn")
 
 	_assign_wall_texture(screen_front, viewport)
 	_assign_wall_texture(screen_right, viewport_right)
 	_assign_wall_texture(screen_left, viewport_left)
-	_assign_wall_texture(screen_back, viewport)
+	_assign_wall_texture(screen_back, viewport_back)
 
 func _duplicate_viewport(source_viewport: SubViewport, viewport_name: String) -> SubViewport:
 	var new_viewport = source_viewport.duplicate()

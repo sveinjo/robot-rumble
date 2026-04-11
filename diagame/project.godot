@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Robot Rumble"
-run/main_scene="uid://dm0xatk2pjr78"
+run/main_scene="uid://credits3d"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
