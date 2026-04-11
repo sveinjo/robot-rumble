@@ -17,10 +17,10 @@ z_index = 200
 
 [node name="CreditFadeText2" parent="." instance=ExtResource("2_fade")]
 position = Vector2(960, 444)
-credit_text = "Art by\nAndreas Johansen"
+credit_text = "Code and Design by\nSveinacious-G"
 z_index = 200
 
 [node name="CreditFadeText3" parent="." instance=ExtResource("2_fade")]
 position = Vector2(1280, 564)
-credit_text = "Game design by\nSvein-Gunnar Johansen"
+credit_text = "Art by\nAlexandreMorsilla"
 z_index = 200

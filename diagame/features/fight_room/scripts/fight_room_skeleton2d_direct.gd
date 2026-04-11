@@ -3,6 +3,14 @@ extends Node2D
 
 const WEIGHTED_TEXTURE: Texture2D = preload("res://assets/sprites/gBot.png")
 const DEMO_PLAYER_SCENE: PackedScene = preload("res://features/fight_room/resources/gbot_animation_source.tscn")
+const DESIGN_SIZE := Vector2(1920.0, 1080.0)
+const STAR_SPAWN_INTERVAL := 1.0 / 60.0
+const STAR_SPEED_MULTIPLIERS: Array[int] = [4, 2, 1]
+const STAR_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/sprites/Star1d_0.png"),
+	preload("res://assets/sprites/Star2d_0.png"),
+	preload("res://assets/sprites/Star3d_0.png"),
+]
 
 @onready var idle_animation_player: AnimationPlayer = $Character2D/IdleAnimationPlayer
 @onready var skeleton_2d: Skeleton2D = $Character2D/Sprite/Skeleton2D
@@ -26,6 +34,12 @@ const DEMO_PLAYER_SCENE: PackedScene = preload("res://features/fight_room/resour
 @onready var right_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg
 @onready var right_lower_leg_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg
 @onready var right_foot_bone: Bone2D = $Character2D/Sprite/Skeleton2D/Hip/RightLeg/RightLowerLeg/RightFoot
+@onready var stars_root: Node2D = $Stars
+
+@export var show_starfield: bool = true
+@export var star_spawn_interval: float = STAR_SPAWN_INTERVAL
+@export var star_speed: float = 2.0
+@export var star_size: float = 1.0
 
 var _idle_time := 0.0
 var _base_hip_pos := Vector2.ZERO
@@ -37,6 +51,8 @@ var _base_right_arm_rot := 0.0
 var _available_animations: Array[StringName] = []
 var _current_animation_index := -1
 var _animation_label: Label = null
+var _star_rng := RandomNumberGenerator.new()
+var _star_spawn_timer: float = STAR_SPAWN_INTERVAL
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -50,6 +66,7 @@ func _ready() -> void:
 			_import_demo_animations()
 		return
 
+	_setup_starfield()
 	set_process(true)
 	set_process_input(true)
 	_ensure_animation_label()
@@ -77,6 +94,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	_update_starfield(delta)
 	_idle_time += delta
 	if idle_animation_player != null and _current_animation_index >= 0 and _current_animation_index < _available_animations.size() and not idle_animation_player.is_playing():
 		var animation_name := _available_animations[_current_animation_index]
@@ -90,6 +108,76 @@ func _input(event: InputEvent) -> void:
 		var key_event := event as InputEventKey
 		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_TAB:
 			_next_animation()
+
+func _setup_starfield() -> void:
+	if stars_root == null:
+		return
+
+	_star_rng.randomize()
+	_star_spawn_timer = maxf(0.01, star_spawn_interval)
+	stars_root.z_index = -5
+	_clear_starfield()
+	stars_root.visible = show_starfield
+	if not show_starfield:
+		return
+
+func _spawn_star(spawn_at_random_x: bool = false) -> void:
+	if stars_root == null:
+		return
+
+	var star_tier: int = _star_rng.randi_range(0, 2)
+	var speed_multiplier: float = STAR_SPEED_MULTIPLIERS[star_tier]
+
+	var star := Sprite2D.new()
+	star.texture = STAR_TEXTURES[star_tier]
+	star.z_index = 0
+	star.scale = Vector2(star_size, star.scale.y)
+	star.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	var viewport_size: Vector2 = get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		viewport_size = DESIGN_SIZE
+	if spawn_at_random_x:
+		star.position = Vector2(_star_rng.randf_range(0.0, viewport_size.x), _star_rng.randf_range(0.0, viewport_size.y))
+	else:
+		star.position = Vector2(viewport_size.x, _star_rng.randf_range(0.0, viewport_size.y))
+	star.set_meta("speed_multiplier", speed_multiplier)
+	stars_root.add_child(star)
+
+func _update_starfield(delta: float) -> void:
+	if stars_root == null:
+		return
+
+	if not show_starfield:
+		stars_root.visible = false
+		return
+
+	stars_root.visible = true
+	if star_speed < 14.0:
+		star_speed = min(14.0, star_speed * 1.05)
+	if star_size < 10.0:
+		star_size = min(10.0, star_size * 1.05)
+
+	_star_spawn_timer -= delta
+	var safe_interval: float = maxf(0.01, star_spawn_interval)
+	while _star_spawn_timer <= 0.0:
+		_spawn_star(false)
+		_star_spawn_timer += safe_interval
+
+	var step_scale: float = delta * 60.0
+	for star in stars_root.get_children():
+		if not (star is Sprite2D):
+			continue
+		var star_sprite := star as Sprite2D
+		var speed_multiplier: int = int(star_sprite.get_meta("speed_multiplier", 1))
+		star_sprite.position.x += -star_speed * float(speed_multiplier) * step_scale
+		star_sprite.scale.x = star_size
+		var texture_width: float = float(star_sprite.texture.get_width()) if star_sprite.texture != null else 0.0
+		if star_sprite.position.x <= -texture_width:
+			star_sprite.queue_free()
+
+func _clear_starfield() -> void:
+	for child in stars_root.get_children():
+		child.queue_free()
 
 func _import_demo_animations() -> void:
 	if idle_animation_player == null:

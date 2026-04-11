@@ -1,7 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://d1x7y8k2m5n3p"]
+[gd_scene format=3 uid="uid://d1x7y8k2m5n3p"]
 
-[ext_resource type="Script" path="res://features/credits/scripts/credit_fade_text.gd" id="1"]
+[ext_resource type="Script" uid="uid://drxos0r8gg4aq" path="res://features/credits/scripts/credit_fade_text.gd" id="1"]
 
-[node name="CreditFadeText" type="Node2D"]
+[node name="CreditFadeText" type="Node2D" unique_id=1067012639]
 z_index = 100
 script = ExtResource("1")

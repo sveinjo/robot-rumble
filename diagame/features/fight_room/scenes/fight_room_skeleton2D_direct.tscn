@@ -89,6 +89,9 @@ _data = {
 [node name="FightRoomSkeleton2DDirect" type="Node2D" unique_id=166090148]
 script = ExtResource("1_script")
 
+[node name="Stars" type="Node2D" parent="." unique_id=2019978331]
+z_index = -5
+
 [node name="Background" type="Sprite2D" parent="." unique_id=706287660]
 z_index = -10
 position = Vector2(960, 540)
