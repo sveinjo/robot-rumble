@@ -1,0 +1,23 @@
+[remap]
+
+importer="importer.scml"
+type="PackedScene"
+uid="uid://cif1egcj416p0"
+path="res://.godot/imported/Reaper.autosave.scml-36b3fb5d2e2af34015d40827b109e2f5.scn"
+
+[deps]
+
+source_file="res://assets/SCML/Reaper.autosave.scml"
+dest_files=["res://.godot/imported/Reaper.autosave.scml-36b3fb5d2e2af34015d40827b109e2f5.scn"]
+
+[params]
+
+playback_speed=1.0
+z_as_relative=true
+loop_animations=1
+loop_wrap_interpolation=true
+optimize_for_blends=true
+create_events_as_signals=true
+rest_pose_animation=""
+character_map_file=""
+reparenting_solution="instance per parent"
