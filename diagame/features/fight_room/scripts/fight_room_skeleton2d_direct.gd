@@ -130,7 +130,8 @@ func _spawn_star(spawn_at_random_x: bool = false) -> void:
 
 	var star := Sprite2D.new()
 	star.texture = STAR_TEXTURES[star_tier]
-	star.z_index = 0
+	# Keep large/slow stars in the foreground; smaller tiers stay behind the robot.
+	star.z_index = 10 if star_tier == 0 else 0
 	star.scale = Vector2(star_size, star.scale.y)
 	star.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	var viewport_size: Vector2 = get_viewport_rect().size
@@ -189,12 +190,24 @@ func _import_demo_animations() -> void:
 		return
 	var source_library := _get_default_library(demo_player)
 	var target_library := _get_or_create_default_library(idle_animation_player)
-	if source_library == null or target_library == null:
+	if target_library == null:
 		demo_instance.free()
 		return
 	_available_animations.clear()
-	for animation_name in source_library.get_animation_list():
-		var source_animation := source_library.get_animation(animation_name)
+	var source_animation_names: Array[StringName] = []
+	if source_library != null:
+		for animation_name in source_library.get_animation_list():
+			source_animation_names.append(animation_name)
+	else:
+		for animation_name in demo_player.get_animation_list():
+			source_animation_names.append(animation_name)
+
+	for animation_name in source_animation_names:
+		var source_animation: Animation = null
+		if source_library != null:
+			source_animation = source_library.get_animation(animation_name)
+		else:
+			source_animation = demo_player.get_animation(animation_name)
 		if source_animation == null:
 			continue
 		var copied_animation := source_animation.duplicate(true) as Animation
@@ -231,7 +244,11 @@ func _get_or_create_default_library(player: AnimationPlayer) -> AnimationLibrary
 func _play_start_animation() -> void:
 	if idle_animation_player == null:
 		return
-	if idle_animation_player.has_animation(&"walk"):
+	if idle_animation_player.has_animation(&"run"):
+		_current_animation_index = _available_animations.find(&"run")
+		if _current_animation_index == -1:
+			_current_animation_index = 0
+	elif idle_animation_player.has_animation(&"walk"):
 		_current_animation_index = _available_animations.find(&"walk")
 		if _current_animation_index == -1:
 			_current_animation_index = 0
