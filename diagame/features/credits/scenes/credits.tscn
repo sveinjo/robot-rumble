@@ -7,6 +7,9 @@
 
 [node name="Credits" type="Node2D" unique_id=639440031]
 
+[node name="LocalStars" type="Node2D" parent="."]
+z_index = -100
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2124425266]
 offset = Vector2(960, 540)
 
