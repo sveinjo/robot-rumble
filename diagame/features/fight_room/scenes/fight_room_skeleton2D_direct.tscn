@@ -98,7 +98,7 @@ position = Vector2(960, 540)
 texture = ExtResource("2_bg")
 
 [node name="Character2D" type="Node2D" parent="." unique_id=742538647]
-position = Vector2(960, 790)
+position = Vector2(960, 665)
 
 [node name="IdleAnimationPlayer" type="AnimationPlayer" parent="Character2D" unique_id=69378282]
 libraries/ = SubResource("AnimationLibrary_fight_room")
