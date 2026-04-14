@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Robot Rumble"
-run/main_scene="res://features/credits/scenes/click_to_start.tscn"
+run/main_scene="uid://dm0xatk2pjr78"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -26,10 +26,15 @@ GameState="*res://autoload/state/game_state.gd"
 MusicManager="*res://autoload/audio/music_manager.gd"
 StarfieldManager="*res://autoload/fx/starfield_manager.gd"
 
+[debug]
+
+gdscript/warnings/enable=false
+
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=4
 window/stretch/mode="viewport"
 textures/canvas_textures/default_texture_filter=1
 

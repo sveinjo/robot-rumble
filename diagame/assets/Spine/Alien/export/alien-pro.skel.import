@@ -1,0 +1,14 @@
+[remap]
+
+importer="spine.skel"
+type="SpineSkeletonFileResource"
+uid="uid://bncnkv1mi0hk1"
+path="res://.godot/imported/alien-pro.skel-d5e74d6f36ee32df9708ff24bc0e70ea.spskel"
+
+[deps]
+
+source_file="res://assets/Spine/Alien/export/alien-pro.skel"
+dest_files=["res://.godot/imported/alien-pro.skel-d5e74d6f36ee32df9708ff24bc0e70ea.spskel"]
+
+[params]
+
