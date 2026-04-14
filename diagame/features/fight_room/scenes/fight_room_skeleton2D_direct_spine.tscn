@@ -20,6 +20,9 @@ texture = ExtResource("2_bg")
 [node name="AlienSpine" type="SpineSprite" parent="." unique_id=742538647]
 position = Vector2(960, 790)
 
+[node name="AlienAnimationPlayer" type="AnimationPlayer" parent="AlienSpine" unique_id=1718430204]
+libraries/ = SubResource("AnimationLibrary_fight_room")
+
 [node name="Character2D" type="Node2D" parent="." unique_id=1403865513]
 visible = false
 position = Vector2(960, 790)
